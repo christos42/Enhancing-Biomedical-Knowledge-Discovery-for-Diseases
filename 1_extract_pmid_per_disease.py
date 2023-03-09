@@ -1,7 +1,7 @@
 import argparse
-from pubmed_library import PubMed
+from utils.pubmed import PubMed
 from datetime import date
-from utils import save_json, create_new_folder
+from utils.utils import save_json, create_new_folder
 
 
 if __name__ == '__main__':
