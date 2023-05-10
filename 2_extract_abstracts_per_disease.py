@@ -16,7 +16,7 @@ def get_unique_abstracts(all_abstracts):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--date", type=str,
-                        required=True, help="the output path")
+                        required=True, help="the date of extraction")
     parser.add_argument("--input_path", default="output/pmid/", type=str,
                         required=False, help="the path containing PMIDs lists")
     parser.add_argument("--output_path", default="output/abstracts/", type=str,
