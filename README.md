@@ -21,7 +21,9 @@ For a detailed description of the framework, see our paper:
 - Run the ```3_abstract_processing.py --date [--input_path]``` to tokenize the sentences of the abstracts. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
-- 
+- Run the ```4_abstract_info.py --date [--input_path]``` to find the number of abstracts per disease and plot the frequency of new released articles per year. Arguments:
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
 
 ## Notes
   [NOTE 1]: Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
