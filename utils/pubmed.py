@@ -404,7 +404,7 @@ class Abstract:
         self.output_path = output_path
 
     def number_of_abstracts(self):
-        print(len(list(self.abstract_dict.keys())))
+        return len(list(self.abstract_dict.keys()))
 
     def freq_per_month(self):
         freq = {}
