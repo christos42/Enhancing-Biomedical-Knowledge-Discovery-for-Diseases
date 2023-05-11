@@ -4,11 +4,15 @@
 Official code repository of "Knowledge Extraction for incurable diseases using pubmed: A step towards never-ending learning" paper.
 For a detailed description of the framework, see our paper: 
 
+---
+
 ## Setup
 ### Requirements
  - Python 3.5+
  - BioPython (tested with version 1.78)
  - nltk (tested with version 3.7) 
+ - scispacy (tested with version 0.5.1)
+ - sklearn (tested with version 0.23.2)
 
 ### Execution steps
 - Run the ```1_extract_pmid_per_disease.py --query [--output_path]``` script to extract the related PubMed article PMIDs given the query term (e.g.  <i>python 1_extract_pmid_per_disease.py --query 'rett syndrome'</i>). Arguments:
@@ -24,6 +28,21 @@ For a detailed description of the framework, see our paper:
 - Run the ```4_abstract_info.py --date [--input_path]``` to find the number of abstracts per disease and plot the frequency of new released articles per year. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
+
+For the mention extraction two pipelines are provided. One is using the [SciSpacy library](https://github.com/allenai/scispacy) [1] to extract the mentions 
+and link them in knowledge bases/vocabularies (e.g. UMLS, MESH, etc.). The other one is using the UMLS MetaMapLite 
+tool for mention extraction and mapping.
+
+#### SciSpacy pipeline
+The official SciSpacy library utilizes an older UMLS version (2020AA) to train and create the linkers 
+(char-3grams string overlap-based search). Follow the next steps to update the linkers:
+- [Download](https://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html) the new UMLS version and 
+store the files under the folder ```UMLS_update_SciSpacy```.
+- Execute the ```knowledge_base_creation.ipynb``` notebook to extract the processed [knowledge bases](https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html) 
+(UMLS, GO, NCBI, SNOMEDCT_US, HPO, MESH, RXNORM, DRUGBANK, GS).
+- Execute the ```tfidf_creation.ipynb``` notebook to create the linkers.
+- Find the location of SciSpacy package (i.e. <i>miniconda3/envs/ml_42/lib/python3.8/site-packages/scispacy/</i>). Update the paths of the created linkers accordingly in the scripts ```linking_utils.py``` and ```candidate_generation.py```
+that are contained in SciSpacy library. We provide our updated version of the scripts for reference.
 
 ## Notes
   [NOTE 1]: Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
@@ -42,5 +61,6 @@ BibTex:
 
 ## References
 ```
-[1] 
+[1] Neumann, M., King, D., Beltagy, I., & Ammar, W. (2019, August). ScispaCy: Fast and Robust Models for 
+    Biomedical Natural Language Processing. In Proceedings of the 18th BioNLP Workshop and Shared Task (pp. 319-327).
 ```
