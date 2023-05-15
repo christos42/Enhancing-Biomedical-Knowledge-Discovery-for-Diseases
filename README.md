@@ -83,6 +83,11 @@ that are contained in SciSpacy library. We provide our updated version of the sc
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - disease (string) (e.g. <i>rett_syndrome</i>): the name of the disease
   - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): : the path with the extracted mentions
+- Run ```9_cooccurrence_extraction.py --pipeline --date [--input_path]``` to extract the co-occurrence graph with the frequencies.
+  Arguments:
+  - pipeline (string): supported pipelines (scispacy or metamap) 
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
 ---
 
 ## Notes
