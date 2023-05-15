@@ -62,6 +62,13 @@ that are contained in SciSpacy library. We provide our updated version of the sc
   Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
+- Run ```9_cooccurrence_extraction.py --pipeline --date [--input_path]``` to extract the co-occurrence graph with the frequencies.
+  Arguments:
+  - pipeline (string): supported pipelines (scispacy or metamap) 
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
+
+---
 
 ## Notes
   - [NOTE 1]: Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
