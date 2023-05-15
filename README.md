@@ -46,13 +46,20 @@ store the files under the folder ```UMLS_update_SciSpacy```.
 that are contained in SciSpacy library. We provide our updated version of the scripts for reference.
 - Run ```5_mention_extraction_scispacy.py --date [--linker] [--input_path] [--output_path]``` to extract the entities [NOTE 2] and link them to the defined knowledge base/vocabularies. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
-  - linker (string) (optional, default value: <i>umls</i>): the knowledge base/vocabulary where the extracted entities are linked. Supported linkers: umls, mesh, rxnorm, go, hpo, drugbank, gs, ncbi, snomed 
+  - linker (string) (optional, default value: <i>umls</i>): the knowledge base/vocabulary/taxonomy where the extracted entities are linked. Supported linkers: umls, mesh, rxnorm, go, hpo, drugbank, gs, ncbi, snomed 
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
   - output_path (string) (optional, default value: <i>output/mentions_extraction/</i>)
 - Run ```6_entity_linking_merge.py --date [--input_path]``` to merge the mapped entities of the different linkers (e.g. UMLS, GO, etc.) [NOTE 3]. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
 - Run ```7_group_ne_tags.py --date [--input_path]``` to group the extracted entities. Arguments:
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
+- Run ```8_sampling_linking_codes.py --date [--input_path]``` to sample the mapped/linked entities. Some extracted entities 
+  are linked in more than one knowledge bases/vocabularies. Based on their entity type (e.g. disease, gene, etc.) a 
+  prioritised sampling strategy is defined and used. For example, for an entity with predicted type <i>chemical/drug</i>,
+  we firstly check if there is any linked entity to RXNORM (specific vocabulary for chemicals) in order to sample it.
+  Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
 
