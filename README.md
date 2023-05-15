@@ -72,13 +72,17 @@ that are contained in SciSpacy library. We provide our updated version of the sc
 
 #### Metamap pipeline
 - Install [MetaMap Lite](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/run-locally/MetaMapLite.html) locally. 
-- Move the script ```5_mention_extraction_metamap.py``` under the folder where MetaMap is installed.
+- Move the script ```5_mention_extraction_metamap.py``` under the folder where MetaMap (e.g. <i>metamap/public_mm_lite</i>) is installed.
 - Run ```5_mention_extraction_metamap.py --date --metamap_path [--input_path] [--output_path]``` to extract the mentions using
   the MetaMap Lite tool. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - metamap_path (string) (default value: <i>metamap/public_mm_lite/</i>): the path to metamap installation
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
   - output_path (string) (optional, default value: <i>output/mentions_extraction/</i>): : the path with the extracted mentions
+- Run ```6_mention_merge_metamap.py --date --disease [--input_path]``` to process and merge the extracted mentions. Arguments:
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - disease (string) (e.g. <i>rett_syndrome</i>): the name of the disease
+  - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): : the path with the extracted mentions
 ---
 
 ## Notes
