@@ -6,7 +6,7 @@ from utils.ner_utils import merge_entity_pos_tags_dicts
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--date", type=str,
-                        required=False, help="the data retrieval date")
+                        required=True, help="the date of extraction")
     parser.add_argument("--linker", default="umls", type=str, required=False,
                         help="supported linkers: umls, mesh, rxnorm, go, hpo, drugbank, gs, ncbi, snomed")
     parser.add_argument("--input_path", default="output/abstracts/", type=str,
@@ -19,8 +19,7 @@ if __name__ == '__main__':
     output_path = args.output_path + args.date + '/scispacy/' + '/linking/' + args.linker + '/'
     create_new_folder(output_path)
 
-    #files = find_json_files(args.input_path + args.date + '/')
-    files = ['output/abstracts/09_03_23/rett_syndrome.json']
+    files = find_json_files(args.input_path + args.date + '/')
 
     scispacy_craft = MentionsExtractorSciSpacy('craft', args.linker)
     scispacy_bc5cdr = MentionsExtractorSciSpacy('bc5cdr', args.linker)
