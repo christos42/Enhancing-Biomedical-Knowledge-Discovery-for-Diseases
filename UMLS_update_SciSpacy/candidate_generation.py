@@ -1,4 +1,4 @@
-from tping import List, Dict, Tuple, NamedTuple, Type
+from typing import List, Dict, Tuple, NamedTuple, Type
 import json
 import datetime
 from collections import defaultdict
