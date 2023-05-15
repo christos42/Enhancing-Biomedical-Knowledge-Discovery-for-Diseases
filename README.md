@@ -14,6 +14,8 @@ For a detailed description of the framework, see our paper:
  - scispacy (tested with version 0.5.1)
  - sklearn (tested with version 0.23.2)
  - spacy (tested with version 3.4.4)
+ - pandas (tested with version 1.4.1)
+ - [pymetamap](https://github.com/AnthonyMRios/pymetamap)
 
 ### Execution steps
 - Run ```1_extract_pmid_per_disease.py --query [--output_path]``` to extract the related PubMed article PMIDs given the query term (e.g.  <i>python 1_extract_pmid_per_disease.py --query 'rett syndrome'</i>). Arguments:
@@ -48,7 +50,7 @@ that are contained in SciSpacy library. We provide our updated version of the sc
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - linker (string) (optional, default value: <i>umls</i>): the knowledge base/vocabulary/taxonomy where the extracted entities are linked. Supported linkers: umls, mesh, rxnorm, go, hpo, drugbank, gs, ncbi, snomed 
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
-  - output_path (string) (optional, default value: <i>output/mentions_extraction/</i>)
+  - output_path (string) (optional, default value: <i>output/mentions_extraction/</i>): : the path with the extracted mentions
 - Run ```6_entity_linking_merge.py --date [--input_path]``` to merge the mapped entities of the different linkers (e.g. UMLS, GO, etc.) [NOTE 3]. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
@@ -68,6 +70,15 @@ that are contained in SciSpacy library. We provide our updated version of the sc
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
 
+#### Metamap pipeline
+- Install [MetaMap Lite](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/run-locally/MetaMapLite.html) locally. 
+- Move the script ```5_mention_extraction_metamap.py``` under the folder where MetaMap is installed.
+- Run ```5_mention_extraction_metamap.py --date --metamap_path [--input_path] [--output_path]``` to extract the mentions using
+  the MetaMap Lite tool. Arguments:
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - metamap_path (string) (default value: <i>metamap/public_mm_lite/</i>): the path to metamap installation
+  - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
+  - output_path (string) (optional, default value: <i>output/mentions_extraction/</i>): : the path with the extracted mentions
 ---
 
 ## Notes
