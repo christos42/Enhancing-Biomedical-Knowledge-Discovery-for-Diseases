@@ -16,17 +16,17 @@ For a detailed description of the framework, see our paper:
  - spacy (tested with version 3.4.4)
 
 ### Execution steps
-- Run the ```1_extract_pmid_per_disease.py --query [--output_path]``` script to extract the related PubMed article PMIDs given the query term (e.g.  <i>python 1_extract_pmid_per_disease.py --query 'rett syndrome'</i>). Arguments:
+- Run ```1_extract_pmid_per_disease.py --query [--output_path]``` to extract the related PubMed article PMIDs given the query term (e.g.  <i>python 1_extract_pmid_per_disease.py --query 'rett syndrome'</i>). Arguments:
   - query (string): the query term for the search (e.g. rett syndrome or alzheimer's disease)
   - output_path (string) (optional, default value: <i>output/pmid/</i>): the path to store the extracted PMIDs (paper identifiers provided by PubMed)
-- Run the ```2_extract_abstracts_per_disease.py --date [--input_path] [--output_path]``` to retrieve the abstracts given the extracted PMIDs of the first step (e.g.  <i>2_extract_abstracts_per_disease.py --date '09_03_23'</i>) [NOTE 1]. Arguments:
+- Run ```2_extract_abstracts_per_disease.py --date [--input_path] [--output_path]``` to retrieve the abstracts given the extracted PMIDs of the first step (e.g.  <i>2_extract_abstracts_per_disease.py --date '09_03_23'</i>) [NOTE 1]. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/pmid/</i>): the path where the extracted PMIDs are stored
   - output_path (string) (optional, default value: <i>output/abstracts/</i>): the path to store the extracted abstracts
-- Run the ```3_abstract_processing.py --date [--input_path]``` to tokenize the sentences of the abstracts. Arguments:
+- Run ```3_abstract_processing.py --date [--input_path]``` to tokenize the sentences of the abstracts. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
-- Run the ```4_abstract_info.py --date [--input_path]``` to find the number of abstracts per disease and plot the frequency of new released articles per year. Arguments:
+- Run ```4_abstract_info.py --date [--input_path]``` to find the number of abstracts per disease and plot the frequency of new released articles per year. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
 
@@ -49,6 +49,9 @@ that are contained in SciSpacy library. We provide our updated version of the sc
   - linker (string) (optional, default value: <i>umls</i>): the knowledge base/vocabulary where the extracted entities are linked. Supported linkers: umls, mesh, rxnorm, go, hpo, drugbank, gs, ncbi, snomed 
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
   - output_path (string) (optional, default value: <i>output/mentions_extraction/</i>)
+- Run ```6_entity_linking_merge.py --date [--input_path]``` to merge the mapped entities of the different linkers (e.g. UMLS, GO, etc.) [NOTE 3]. Arguments:
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
 
 ## Notes
   - [NOTE 1]: Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
@@ -58,6 +61,9 @@ that are contained in SciSpacy library. We provide our updated version of the sc
             until the message that indicates the success is printed. 
   - [NOTE 2]: We utilise the [4 provided models](https://allenai.github.io/scispacy/) (CRAFT, JNLPBA, BC5CDR, BIONLP13CG) to
               extract a wide range of entity types. 
+  - [NOTE 3]: In the implementation, we hypothesize that all the supported linkers are used. If this is not the case comment-out
+              lines of code accordingly in the ```6_entity_linking_merge.py --date [--input_path]``` script and adjust also the 
+              ```merge_linkers_scispacy``` function.
 
 Please cite our work when using this software.
 
