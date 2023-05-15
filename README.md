@@ -52,6 +52,9 @@ that are contained in SciSpacy library. We provide our updated version of the sc
 - Run ```6_entity_linking_merge.py --date [--input_path]``` to merge the mapped entities of the different linkers (e.g. UMLS, GO, etc.) [NOTE 3]. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
+- Run ```7_group_ne_tags.py --date [--input_path]``` to group the extracted entities. Arguments:
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): the path with the extracted mentions
 
 ## Notes
   - [NOTE 1]: Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
