@@ -13,6 +13,7 @@ For a detailed description of the framework, see our paper:
  - nltk (tested with version 3.7) 
  - scispacy (tested with version 0.5.1)
  - sklearn (tested with version 0.23.2)
+ - spacy (tested with version 3.4.4)
 
 ### Execution steps
 - Run the ```1_extract_pmid_per_disease.py --query [--output_path]``` script to extract the related PubMed article PMIDs given the query term (e.g.  <i>python 1_extract_pmid_per_disease.py --query 'rett syndrome'</i>). Arguments:
@@ -43,13 +44,20 @@ store the files under the folder ```UMLS_update_SciSpacy```.
 - Execute the ```tfidf_creation.ipynb``` notebook to create the linkers.
 - Find the location of SciSpacy package (i.e. <i>miniconda3/envs/ml_42/lib/python3.8/site-packages/scispacy/</i>). Update the paths of the created linkers accordingly in the scripts ```linking_utils.py``` and ```candidate_generation.py```
 that are contained in SciSpacy library. We provide our updated version of the scripts for reference.
+- Run ```5_mention_extraction_scispacy.py --date [--linker] [--input_path] [--output_path]``` to extract the entities [NOTE 2] and link them to the defined knowledge base/vocabularies. Arguments:
+  - date (string): the date of the PMID extraction in the following format: day_month_year
+  - linker (string) (optional, default value: <i>umls</i>): the knowledge base/vocabulary where the extracted entities are linked. Supported linkers: umls, mesh, rxnorm, go, hpo, drugbank, gs, ncbi, snomed 
+  - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
+  - output_path (string) (optional, default value: <i>output/mentions_extraction/</i>)
 
 ## Notes
-  [NOTE 1]: Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
+  - [NOTE 1]: Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
             The script prints the name of the PMID files (e.g. 'rett_syndrome.json') that haven't been completed. If all the abstract
             have been successfully extracted the script prints the message: "All abstracts have been extracted successfully!". 
             In the case of API failure, in order to retrieve all the abstracts the script should be executed iteratively 
             until the message that indicates the success is printed. 
+  - [NOTE 2]: We utilise the [4 provided models](https://allenai.github.io/scispacy/) (CRAFT, JNLPBA, BC5CDR, BIONLP13CG) to
+              extract a wide range of entity types. 
 
 Please cite our work when using this software.
 
