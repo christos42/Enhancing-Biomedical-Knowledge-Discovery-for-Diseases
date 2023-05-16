@@ -1,6 +1,6 @@
 ## Annotation application 
 ---
-We describe the process of sampling and sentence annotation.
+We describe the process of sentence sampling and annotation.
 
 ## Setup
 ### Requirements
