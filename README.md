@@ -15,6 +15,7 @@ For a detailed description of the framework, see our paper:
  - sklearn (tested with version 0.23.2)
  - spacy (tested with version 3.4.4)
  - pandas (tested with version 1.4.1)
+ - numpy (tested with version 1.23.5)
  - [pymetamap](https://github.com/AnthonyMRios/pymetamap)
 
 ### Execution steps
