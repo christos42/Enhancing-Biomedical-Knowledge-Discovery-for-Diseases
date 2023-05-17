@@ -72,10 +72,10 @@ if __name__ == '__main__':
 						help="the path to the merged extracted entities")
 	parser.add_argument("--abstract_path", type=str, required=True, 
 						help="the path to the abstract file")
-	parser.add_argument("--strategy_id", type=str, required=True, 
-						help="the sampling strategy id, supported values: 1, 2")
 	parser.add_argument("--disease_name", type=str, required=True, 
 						help="the name of the disease")
+	parser.add_argument("--strategy_id", type=str, required=True, 
+						help="the sampling strategy id, supported values: 1, 2")
 	parser.add_argument("--bucket_id", type=int, required=True, 
 						help="the id number of the bucket")
 
