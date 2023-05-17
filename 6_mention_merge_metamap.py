@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from utils.utils import find_csv_files, save_json
 
+
 def get_entities(d):
     entities = {}
     for r in d.itertuples():
@@ -19,6 +20,24 @@ def get_entities(d):
                                'trigger': r.trigger}
 
     return entities
+
+
+def get_chunk(pos):
+    start = int(pos.split('/')[0]) - 1
+    stop = start + int(pos.split('/')[1])
+    return [start, stop]
+
+
+def merge_sequent_entities(en1, en2, chunk1, chunk2):
+    m_ent = {'preferred_name': en1['preferred_name'] + '||' + en2['preferred_name'],
+             'cui': en1['cui'] + '||' + en2['cui'],
+             'semantic_type': en1['semantic_type'] + en2['semantic_type'],
+             'position': str(chunk1[0]) + '/' + str(chunk2[1] - chunk1[0]),
+             'score': [en1['score'], en2['score']],
+             'trigger': en1['trigger'] + '||' + en2['trigger'],
+             'mapped_semantic_type': en1['mapped_semantic_type'] + en2['mapped_semantic_type']}
+    return m_ent
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -125,15 +144,56 @@ if __name__ == '__main__':
         except:
             pass
 
-    for k1 in all_entities:
+        for k1 in all_entities:
         for k2 in all_entities[k1]:
             mapped_types = []
             types = all_entities[k1][k2]['semantic_type'][1:-1].split(',')
+            semantic_types_reformed = []
             for t in types:
+                semantic_types_reformed.append(t.replace(' ', ''))
                 try:
                     mapped_types.append(mapping[t.replace(' ', '')])
                 except:
                     pass
             all_entities[k1][k2]['mapped_semantic_type'] = mapped_types
+            all_entities[k1][k2]['semantic_type'] = semantic_types_reformed
+
+    for k in all_entities:
+        chunks = []
+        entities_to_merge = []
+        for ent in all_entities[k]:
+            chunks.append(get_chunk(all_entities[k][ent]['position']))
+        # Find the entities that should be merged
+        for i1, c1 in enumerate(chunks):
+            for i2, c2 in enumerate(chunks):
+                if c1[1] + 1 == c2[0]:
+                    key1 = list(all_entities[k].keys())[i1]
+                    key2 = list(all_entities[k].keys())[i2]
+                    ent1 = all_entities[k][key1]
+                    ent2 = all_entities[k][key2]
+                    if ent1['cui'] == ent2['cui']:
+                        entities_to_merge.append([i1, i2])
+                    elif ent1['semantic_type'] != ent2['semantic_type']:
+                        entities_to_merge.append([i1, i2])
+
+        keys_to_remove = []
+        for m_ent in entities_to_merge:
+            key1 = list(all_entities[k].keys())[m_ent[0]]
+            key2 = list(all_entities[k].keys())[m_ent[1]]
+            ent1 = all_entities[k][key1]
+            ent2 = all_entities[k][key2]
+            chunk1 = chunks[m_ent[0]]
+            chunk2 = chunks[m_ent[1]]
+            # Merge the entities
+            f_m_ent = merge_sequent_entities(ent1, ent2, chunk1, chunk2)
+            # Remove the entities to add the merged version
+            keys_to_remove.append(key1)
+            keys_to_remove.append(key2)
+            all_entities[k][f_m_ent['position']] = f_m_ent
+        for k_r in keys_to_remove:
+            try:
+                all_entities[k].pop(k_r)
+            except:
+                pass
 
     save_json(all_entities, args.disease + '.json', args.input_path + args.date + '/metamap/merged_entities/')
