@@ -4,9 +4,11 @@ def get_cooccurrence_dict_metamap(data):
         for i, ent1_ in enumerate(list(data[k1].keys())):
             ent1 = data[k1][ent1_]
             cui1 = ent1['cui']
+            cui1 = cui1.replace('||', '_')
             for j, ent2_ in enumerate(list(data[k1].keys())[i + 1:]):
                 ent2 = data[k1][ent2_]
                 cui2 = ent2['cui']
+                cui2 = cui2.replace('||', '_')
                 if cui1 == cui2:
                     continue
                 if cui1 + '_' + cui2 not in freq_pairs.keys() and cui2 + '_' + cui1 not in freq_pairs.keys():
@@ -93,8 +95,10 @@ def get_unique_cuis_metamap(data):
     for k1 in data:
         for k2 in data[k1].keys():
             ent = data[k1][k2]
-            if ent['cui'] not in unique_cuis:
-                unique_cuis.append(ent['cui'])
+            cuis = ent['cui'].split('||')
+            for cui in cuis:
+                if cui not in unique_cuis:
+                    unique_cuis.append(cui)
 
     return unique_cuis
 
