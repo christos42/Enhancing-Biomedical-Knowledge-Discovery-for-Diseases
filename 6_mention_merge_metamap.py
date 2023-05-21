@@ -39,6 +39,61 @@ def merge_sequent_entities(en1, en2, chunk1, chunk2):
     return m_ent
 
 
+def detect_overlaps(positions, d_):
+    overlaps = []
+    for i1, p1 in enumerate(positions):
+        for i2, p2 in enumerate(positions):
+            if i1 == i2:
+                continue
+            else:
+                p1_start = int(p1.split('/')[0]) - 1
+                p1_stop = p1_start + int(p1.split('/')[1])
+                p2_start = int(p2.split('/')[0]) - 1
+                p2_stop = p2_start + int(p2.split('/')[1])
+                if (p1_start <= p2_start) and (p2_start <= p1_stop):
+                    cui1 = d_[p1]['cui']
+                    cui2 = d_[p2]['cui']
+                    if cui1 == cui2:
+                        flag = 0
+                        for i3, o in enumerate(overlaps):
+                            if i1 in o:
+                                flag = 1
+                                overlaps[i3].append(i2)
+                            elif i2 in o:
+                                flag = 1
+                                overlaps[i3].insert(o.index(i2), i1)
+                        if flag == 0:
+                            overlaps.append([i1, i2])
+        
+    return overlaps
+
+    
+def resolve_overlaps(positions, d_, overlaps):
+    keys_to_remove = []
+    for o in overlaps:
+        p1 = positions[o[0]]
+        p2 = positions[o[1]]
+        score1 = d_[p1]['score']
+        score2 = d_[p2]['score']
+        if score1 > score2:
+            keys_to_remove.append(p2)
+        elif score1 < score2:
+            keys_to_remove.append(p1)
+        else:
+            p1_start = int(p1.split('/')[0]) - 1
+            p1_stop = p1_start + int(p1.split('/')[1])
+            p2_start = int(p2.split('/')[0]) - 1
+            p2_stop = p2_start + int(p2.split('/')[1])
+            len1 = p1_stop - p1_start
+            len2 = p2_stop - p2_start
+            if len1 > len2:
+                keys_to_remove.append(p2)
+            else:
+                keys_to_remove.append(p1)
+
+    return keys_to_remove
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--date", type=str,
@@ -195,5 +250,11 @@ if __name__ == '__main__':
                 all_entities[k].pop(k_r)
             except:
                 pass
+
+        # Deal with overlaps
+        overlaps = detect_overlaps(list(all_entities[k].keys()), all_entities[k])
+        keys_to_remove = resolve_overlaps(list(all_entities[k].keys()), all_entities[k], overlaps)
+        for k_r in keys_to_remove:
+            all_entities[k].pop(k_r)
 
     save_json(all_entities, args.disease + '.json', args.input_path + args.date + '/metamap/merged_entities/')
