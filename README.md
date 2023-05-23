@@ -80,10 +80,12 @@ that are contained in SciSpacy library. We provide our updated version of the sc
   - metamap_path (string) (default value: <i>metamap/public_mm_lite/</i>): the path to metamap installation
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
   - output_path (string) (optional, default value: <i>output/mentions_extraction/</i>): : the path with the extracted mentions
-- Run ```6_mention_merge_metamap.py --date --disease [--input_path]``` to process and merge the extracted mentions. Arguments:
+- Run ```6_mention_merge_metamap.py --date --disease --entity_expansion [--input_path] [--abstract_path]``` to process and merge the extracted mentions. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
   - disease (string) (e.g. <i>rett_syndrome</i>): the name of the disease
+  - entity_expansion (int): whether the entity expansion strategy is applied or not [NOTE 4]
   - input_path (string) (optional, default value: <i>output/mentions_extraction/</i>): : the path with the extracted mentions
+  - abstract_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
 - Run ```9_cooccurrence_extraction.py --pipeline --date [--input_path]``` to extract the co-occurrence graph with the frequencies.
   Arguments:
   - pipeline (string): supported pipelines (scispacy or metamap) 
@@ -92,16 +94,19 @@ that are contained in SciSpacy library. We provide our updated version of the sc
 ---
 
 ## Notes
-  - [NOTE 1]: Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
-            The script prints the name of the PMID files (e.g. 'rett_syndrome.json') that haven't been completed. If all the abstract
-            have been successfully extracted the script prints the message: "All abstracts have been extracted successfully!". 
-            In the case of API failure, in order to retrieve all the abstracts the script should be executed iteratively 
-            until the message that indicates the success is printed. 
-  - [NOTE 2]: We utilise the [4 provided models](https://allenai.github.io/scispacy/) (CRAFT, JNLPBA, BC5CDR, BIONLP13CG) to
-              extract a wide range of entity types. 
-  - [NOTE 3]: In the implementation, we hypothesize that all the supported linkers are used. If this is not the case comment-out
-              lines of code accordingly in the ```6_entity_linking_merge.py --date [--input_path]``` script and adjust also the 
-              ```merge_linkers_scispacy``` function.
+  - [NOTE 1] : Sometimes the <i>efetch</i> API calls in PubMed fail. Consequently, some abstracts might not be successfully retrieved.
+               The script prints the name of the PMID files (e.g. 'rett_syndrome.json') that haven't been completed. If all the abstract
+               have been successfully extracted the script prints the message: "All abstracts have been extracted successfully!". 
+               In the case of API failure, in order to retrieve all the abstracts the script should be executed iteratively 
+               until the message that indicates the success is printed. 
+  - [NOTE 2] : We utilise the [4 provided models](https://allenai.github.io/scispacy/) (CRAFT, JNLPBA, BC5CDR, BIONLP13CG) to
+               extract a wide range of entity types. 
+  - [NOTE 3] : In the implementation, we hypothesize that all the supported linkers are used. If this is not the case comment-out
+               lines of code accordingly in the ```6_entity_linking_merge.py --date [--input_path]``` script and adjust also the 
+               ```merge_linkers_scispacy``` function.
+  - [NOTE 4] : When the next character of an entity is not one of the following: " ", <, >, (, ), . (in the end of the sentence), then
+               expand the entity as far as the aforementioned restriction holds. For example, if a medication with the name <i>drug</i>
+               is detected and it is <i>drug4.2%</i> in the context, then the <i>drug</i> entity is expanded to <i>drug4.2%</i>.
 
 Please cite our work when using this software.
 
