@@ -12,12 +12,12 @@ if __name__ == '__main__':
                         required=True, help="the date of extraction")
     parser.add_argument("--disease", default="rett_syndrome", type=str,
                         required=True, help="the disease name written with underscores")
+    parser.add_argument("--entity_expansion", default=1, type=int, 
+                        required=True, help="whether the entity expansion is applied or not")
     parser.add_argument("--input_path", default="output/mentions_extraction/",
                         type=str, required=False, help="the path of the files with extracted mentions/entities")
     parser.add_argument("--abstract_path", default="output/abstracts/", type=str, 
                         required=False, help="the path to the abstract file")
-    parser.add_argument("--abstract_path", default="output/abstracts/", type=str,
-                        required=False, help="the path that contains the abstracts")
 
     args = parser.parse_args()
 
@@ -131,11 +131,12 @@ if __name__ == '__main__':
             all_entities[k1][k2]['mapped_semantic_type'] = mapped_types
             all_entities[k1][k2]['semantic_type'] = semantic_types_reformed
 
-    for k in all_entities:
-        # Expand the detected entities if possible.
-        abstr_k1 = k.split('_')[0]
-        abstr_in = int(k.split('_')[1])
-        all_entities[k] = expand_entities(all_entities[k], abstracts[abstr_k1]['abstract_tokenized'][abstr_in - 1])
+    if args.entity_expansion == 1:
+        for k in all_entities:
+            # Expand the detected entities if possible.
+            abstr_k1 = k.split('_')[0]
+            abstr_in = int(k.split('_')[1])
+            all_entities[k] = expand_entities(all_entities[k], abstracts[abstr_k1]['abstract_tokenized'][abstr_in - 1])
 
     for k in all_entities:
         chunks = []
