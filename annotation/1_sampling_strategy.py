@@ -68,10 +68,12 @@ if __name__ == '__main__':
         
         freq_per_pair = []
         for p in cui_pairs:
+            cui_co_1 = p[0].replace('||', '_')
+            cui_co_2 = p[1].replace('||', '_')
             try:
-                freq_per_pair.append(cooc[p[0] + '_' + p[1]]['frequency'])
+                freq_per_pair.append(cooc[cui_co_1 + '_' + cui_co_2]['frequency'])
             except:
-                freq_per_pair.append(cooc[p[1] + '_' + p[0]]['frequency'])
+                freq_per_pair.append(cooc[cui_co_2 + '_' + cui_co_1]['frequency'])
         
         if len(freq_per_pair) > 0:
             freq_pairs_per_sent[s] = {'concept pairs': cui_pairs,
