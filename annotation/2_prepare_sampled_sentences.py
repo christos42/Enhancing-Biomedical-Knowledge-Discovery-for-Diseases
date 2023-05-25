@@ -42,20 +42,34 @@ def process_sampled_sentences(sampled_ids, data_entities, abstracts):
 	                    if c not in pos1 and c not in pos2:
 	                        sentence_string_to_present += char
 	                    else:
-	                        if c in pos1:
-	                        	if char == ' ':
-	                        		sentence_string_to_present += char
-	                        		colored_entity_1 += char
-	                        	else:
-	                        		sentence_string_to_present += ':red[' + char + ']'
-	                        		colored_entity_1 += ':red[' + char + ']'
-	                        if c in pos2:
-	                        	if char == ' ':
-	                        		sentence_string_to_present += char
-	                        		colored_entity_2 += char
-	                        	else:
-	                        		sentence_string_to_present += ':blue[' + char + ']'
-	                        		colored_entity_2 += ':blue[' + char + ']'
+	                    	color_flag_1 = 0
+	                    	color_flag_2 = 0
+	                    	if c in pos1:
+	                    		if char == ' ':
+	                    			sentence_string_to_present += char
+	                    			colored_entity_1 += char
+	                    		else:
+	                    			color_flag_1 = 1
+	                    			#sentence_string_to_present += ':red[' + char + ']'
+	                    			#colored_entity_1 += ':red[' + char + ']'
+	                    	if c in pos2:
+	                    		if char == ' ':
+	                    			sentence_string_to_present += char
+	                    			colored_entity_2 += char
+	                    		else:
+	                    			color_flag_2 = 1
+	                    			#sentence_string_to_present += ':blue[' + char + ']'
+	                    			#colored_entity_2 += ':blue[' + char + ']'
+	                    	if color_flag_1 == 1 and color_flag_2 == 1:
+	                    		sentence_string_to_present += ':green[' + char + ']'
+	                    		colored_entity_1 += ':green[' + char + ']'
+	                    		colored_entity_2 += ':green[' + char + ']'
+	                    	elif color_flag_1 == 1:
+	                    		sentence_string_to_present += ':red[' + char + ']'
+	                    		colored_entity_1 += ':red[' + char + ']'
+	                    	elif color_flag_2 == 1:
+	                    		sentence_string_to_present += ':blue[' + char + ']'
+	                    		colored_entity_2 += ':blue[' + char + ']'     
 	                    
 	                markdown_sentences[id_ + '_pair_' + str(i) + '_' + str(i+j+1)] = {'sentence': sentence_string_to_present,
                                                                                   	  'cui_type_pair': (cui1_type, cui2_type),
