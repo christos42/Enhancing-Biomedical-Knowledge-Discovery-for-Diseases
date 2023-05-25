@@ -151,10 +151,11 @@ if __name__ == '__main__':
                     key2 = list(all_entities[k].keys())[i2]
                     ent1 = all_entities[k][key1]
                     ent2 = all_entities[k][key2]
-                    if ent1['cui'] == ent2['cui']:
-                        entities_to_merge.append([i1, i2])
-                    elif ent1['semantic_type'] != ent2['semantic_type']:
-                        entities_to_merge.append([i1, i2])
+                    #if ent1['cui'] == ent2['cui']:
+                    #    entities_to_merge.append([i1, i2])
+                    #elif ent1['semantic_type'] != ent2['semantic_type']:
+                    #    entities_to_merge.append([i1, i2])
+                    entities_to_merge.append([i1, i2])
 
         keys_to_remove = []
         for m_ent in entities_to_merge:
@@ -181,5 +182,21 @@ if __name__ == '__main__':
         keys_to_remove = resolve_overlaps(list(all_entities[k].keys()), all_entities[k], overlaps)
         for k_r in keys_to_remove:
             all_entities[k].pop(k_r)
+
+    # Deal with overlaps using expansion
+    for k in all_entities:
+        keys_to_remove, merged_entities = resolve_overlaps_with_expansion(list(all_entities[k].keys()), all_entities[k].copy())
+        for m_ent in merged_entities:
+            all_entities[k][m_ent['position']] = m_ent
+        for k_r in keys_to_remove:
+            try:
+                all_entities[k].pop(k_r[0])
+            except:
+                pass
+            try:
+                all_entities[k].pop(k_r[1])
+            except:
+                pass
+
 
     save_json(all_entities, args.disease + '.json', args.input_path + args.date + '/metamap/merged_entities/')
