@@ -2,6 +2,7 @@ import argparse
 import numpy as np 
 import os 
 import sys 
+import random
 
 sys.path.append('../utils/')
 from utils import read_json, save_json
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     rng = np.random.default_rng()
-
+    
     # Read the files
     data_entities = read_json(args.entity_path)
     cooc = read_json(args.cooccurrence_path)
@@ -141,7 +142,7 @@ if __name__ == '__main__':
                 inversed_probabilities_to_be_sampled[-1] +=  inversed_probabilities_to_be_sampled[index]
                 del inversed_probabilities_to_be_sampled[index]
             
-            buckets.append(list(b1) +list(b2))
+            buckets.append(random.shuffle(list(b1) +list(b2)))
 
         try:
             # Remove artificial id.
@@ -178,7 +179,7 @@ if __name__ == '__main__':
             
             step = 50
             if len(sampled_ids) >= step:
-                buckets_2.append(sampled_ids[:step])
+                buckets_2.append(random.shuffle(sampled_ids[:step]))
                 sampled_ids = sampled_ids[step:]
 
         for k in concept_pairs_to_be_sampled:
@@ -189,9 +190,9 @@ if __name__ == '__main__':
 
         for i in range(0, len(sampled_ids), step):
             try:
-                buckets_2.append(sampled_ids[:step])
+                buckets_2.append(random.shuffle(sampled_ids[:step]))
             except:
-                buckets_2.append(sampled_ids[step:])
+                buckets_2.append(random.shuffle(sampled_ids[step:]))
         folder = 'strategy_2/' + args.disease_name + '/'
         if not(os.path.isdir(folder)):
             os.makedirs(folder)
@@ -201,4 +202,20 @@ if __name__ == '__main__':
     else:
         print('Unsupported sampling strategy id is given. Supported values: 1 and 2.')
 
+    
+    # Create the necessary folders
+    folder = 'annotations/' + args.disease_name + '/' 
+    if not(os.path.isdir(folder)):
+            os.makedirs(folder)
 
+    folder = 'markdown_sentences/' + args.disease_name + '/' 
+    if not(os.path.isdir(folder)):
+            os.makedirs(folder)
+
+    folder = 'entities_to_be_removed/' + args.disease_name + '/' 
+    if not(os.path.isdir(folder)):
+            os.makedirs(folder)
+
+    folder = 'sentences_to_be_removed/' + args.disease_name + '/' 
+    if not(os.path.isdir(folder)):
+            os.makedirs(folder)

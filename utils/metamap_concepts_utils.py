@@ -1,7 +1,7 @@
 def get_entities(d):
     entities = {}
     for r in d.itertuples():
-        if r.score < 0.9:
+        if r.score < 0.4:
             continue
         pos = r.pos_info.split(';')
         for p in pos:

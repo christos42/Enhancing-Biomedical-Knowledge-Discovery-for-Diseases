@@ -101,5 +101,5 @@ if __name__ == '__main__':
 
 	markdown_sentences = process_sampled_sentences(sampled_ids, data_entities, abstracts)
 	
-	save_json(markdown_sentences, 'markdown_sentences_' + str(args.bucket_id) + '.json')
+	save_json(markdown_sentences, 'markdown_sentences/' + args.disease_name + '/markdown_sentences_' + str(args.bucket_id) + '.json')
 	
