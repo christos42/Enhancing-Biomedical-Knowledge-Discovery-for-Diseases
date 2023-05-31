@@ -1,6 +1,6 @@
 ## Annotation application 
 ---
-We describe the process of sentence sampling and annotation.
+We describe the process of sentence sampling and annotation. In this implementation, the output of the Metamap pipeline is used,
 
 ## Setup
 ### Requirements
@@ -22,4 +22,16 @@ We describe the process of sentence sampling and annotation.
   - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
   - strategy_id (string): the id of the sentence sampling strategy (supported values: 1 and 2)
   - bucket_id (int): the id (number) of the bucket with sentences for annotation
-  
+- Run ```streamlit run annotation_app_s.py -- --bucket_id --disease_name --annotator``` to start the annotation application. Arguments:
+  - bucket_id (int): : the id (number) of the bucket with sentences for annotation
+  - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
+  - annotator (string): the name of the annotator/expert
+- Run ```python 3_dataset_creation.py --entity_path --abstract_path --disease_name --annotator``` to process the annotations and create the datasets. Arguments:
+  - entity_path (string): the path to the merged extracted entities
+  - abstract_path (string): the path to the abstract file
+  - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
+  - annotator (string): the name of the annotator/expert
+- Run ```python 4_dataset_processing.py --annotator --disease_name``` to process the dataset; tokenize the sentences, add the special tokens, update the entity spans.
+  Arguments:
+  - annotator (string): the name of the annotator/expert
+  - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
