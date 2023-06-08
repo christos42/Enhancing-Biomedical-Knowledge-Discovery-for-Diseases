@@ -52,23 +52,23 @@ def add_special_tokens_1(tokens, ranges):
     ent_2_start, ent_2_end = ranges[1][0], ranges[1][1]
     for i, t in enumerate(tokens):
         if i == ent_1_start:
-            tokens_updated.append('[ENT]')
+            tokens_updated.append('[ent]')
             tokens_updated.append(t)
             # Corner case: the entity consists of only 1 word
             if ent_1_start == ent_1_end:
-                tokens_updated.append('[/ENT]')
+                tokens_updated.append('[/ent]')
         elif i == ent_2_start:
-            tokens_updated.append('[ENT]')
+            tokens_updated.append('[ent]')
             tokens_updated.append(t)
             # Corner case: the entity consists of only 1 word
             if ent_2_start == ent_2_end:
-                tokens_updated.append('[/ENT]')
+                tokens_updated.append('[/ent]')
         elif i == ent_1_end:
             tokens_updated.append(t)
-            tokens_updated.append('[/ENT]')
+            tokens_updated.append('[/ent]')
         elif i == ent_2_end:
             tokens_updated.append(t)
-            tokens_updated.append('[/ENT]')
+            tokens_updated.append('[/ent]')
         else:
             tokens_updated.append(t)
     return tokens_updated
@@ -80,23 +80,23 @@ def add_special_tokens_2(tokens, ranges):
     ent_2_start, ent_2_end = ranges[1][0], ranges[1][1]
     for i, t in enumerate(tokens):
         if i == ent_1_start:
-            tokens_updated.append('[ENT1]')
+            tokens_updated.append('[ent1]')
             tokens_updated.append(t)
             # Corner case: the entity consists of only 1 word
             if ent_1_start == ent_1_end:
-                tokens_updated.append('[/ENT1]')
+                tokens_updated.append('[/ent1]')
         elif i == ent_2_start:
-            tokens_updated.append('[ENT2]')
+            tokens_updated.append('[ent2]')
             tokens_updated.append(t)
             # Corner case: the entity consists of only 1 word
             if ent_2_start == ent_2_end:
-                tokens_updated.append('[/ENT2]')
+                tokens_updated.append('[/ent2]')
         elif i == ent_1_end:
             tokens_updated.append(t)
-            tokens_updated.append('[/ENT1]')
+            tokens_updated.append('[/ent1]')
         elif i == ent_2_end:
             tokens_updated.append(t)
-            tokens_updated.append('[/ENT2]')
+            tokens_updated.append('[/ent2]')
         else:
             tokens_updated.append(t)
     return tokens_updated
@@ -149,7 +149,7 @@ if __name__ == '__main__':
 	    dataset_total[rec]['entities'][0]['range'] = range_1
 	    dataset_total[rec]['entities'][1]['range'] = range_2
 	    dataset_total[rec]['tokens'] = tokens
-	    dataset_total[rec]['updated_tokens'] = add_special_tokens_2(tokens, [range_1, range_2])
+	    dataset_total[rec]['updated_tokens'] = add_special_tokens_1(tokens, [range_1, range_2])
 	    updated_ranges = update_the_ranges([range_1, range_2])
 	    dataset_total[rec]['entities'][0]['updated_range'] = updated_ranges[0]
 	    dataset_total[rec]['entities'][1]['updated_range'] = updated_ranges[1]

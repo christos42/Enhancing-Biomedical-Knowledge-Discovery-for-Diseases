@@ -20,7 +20,7 @@ parser.add_argument("--annotator", type=str, required=True,
 
 args = parser.parse_args()
 
-markdown_sentences = read_json('markdown_sentences_' + str(args.bucket_id) + '.json') 
+markdown_sentences = read_json('markdown_sentences/' + args.disease_name + '/markdown_sentences_' + str(args.bucket_id) + '.json') 
 
 
 OPTIONS_CORRELATION = ["Positive Correlation", "Negative Correlation", "Complex Correlation", "No Correlation"]
