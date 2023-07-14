@@ -22,6 +22,17 @@ args = parser.parse_args()
 
 markdown_sentences = read_json('markdown_sentences/' + args.disease_name + '/markdown_sentences_' + str(args.bucket_id) + '.json') 
 
+# Create the output path if needed
+folder_1 = 'annotations/' + args.disease_name + '/' + args.annotator + '/'
+if not(os.path.isdir(folder_1)):
+  os.makedirs(folder_1)
+folder_2 = 'entities_to_be_removed/' + args.disease_name + '/' + args.annotator + '/'
+if not(os.path.isdir(folder_2)):
+  os.makedirs(folder_2)
+folder_3 = 'sentences_to_be_removed/' + args.disease_name + '/' + args.annotator + '/'
+if not(os.path.isdir(folder_3)):
+  os.makedirs(folder_3)
+
 
 OPTIONS_CORRELATION = ["Positive Correlation", "Negative Correlation", "Complex Correlation", "No Correlation"]
 LEN_OPTIONS_CORRELATION = [len(s) for s in OPTIONS_CORRELATION]
@@ -58,12 +69,13 @@ def annotation_accumulation(flag, label):
 
 
 def remove_entity(entity_index):
-  if state.current_sentence_id not in state.entities_to_be_removed.keys():
-    state.entities_to_be_removed[state.current_sentence_id] = [entity_index]
-  else:
-    state.entities_to_be_removed[state.current_sentence_id].append(entity_index)
-  # Remove the concept pairs that contain this entity
   sentence_id = '_'.join(state.current_sentence_id.split('_')[:2])
+  if sentence_id not in state.entities_to_be_removed.keys():
+    state.entities_to_be_removed[sentence_id] = [entity_index]
+  else:
+    state.entities_to_be_removed[sentence_id].append(entity_index)
+  # Remove the concept pairs that contain this entity
+  
   pairs_to_remove = []
   for id_ in state.sentence_ids:
     tmp_sentence_id = '_'.join(id_.split('_')[:2])
@@ -142,22 +154,32 @@ if state.sentence_ids:
   st.write('----------------------------------------------')  
   st.button('Done!', type ='primary', on_click=annotation_accumulation, args=("2", text_input, ))
 
-else:
-  st.info("Everything annotated.")
-
-  folder_1 = 'annotations/' + args.disease_name + '/' + args.annotator + '/'
-  if not(os.path.isdir(folder_1)):
-    os.makedirs(folder_1)
-  folder_2 = 'entities_to_be_removed/' + args.disease_name + '/' + args.annotator + '/'
-  if not(os.path.isdir(folder_2)):
-    os.makedirs(folder_2)
-  folder_3 = 'sentences_to_be_removed/' + args.disease_name + '/' + args.annotator + '/'
-  if not(os.path.isdir(folder_3)):
-    os.makedirs(folder_3)
-
+  # Constantly save the annotations
   save_json(state.annotations, folder_1 + 'annotations_' + str(args.bucket_id) + '.json')
   save_json(state.entities_to_be_removed, folder_2 + 'entities_to_be_removed_' + str(args.bucket_id) + '.json')
   save_json(state.sentences_to_be_removed, folder_3 + 'sentences_to_be_removed_' + str(args.bucket_id) + '.json')
+
+else:
+  st.info("Everything annotated.")
+
+  # Final cross-check
+  pairs_to_remove = []
+  for p_id in state.annotations:
+    s_id = '_'.join(p_id.split('_')[:2])
+    if s_id in state.sentences_to_be_removed:
+      pairs_to_remove.append(p_id)
+    if s_id in state.entities_to_be_removed:
+      entity_index_1 = str(state.annotations[p_id]['entity_index_pair'][0])
+      entity_index_2 = str(state.annotations[p_id]['entity_index_pair'][1])
+      if entity_index_1 in state.entities_to_be_removed[s_id] or entity_index_2 in state.entities_to_be_removed[s_id]:
+        pairs_to_remove.append(p_id)
+
+  pairs_to_remove = list(set(pairs_to_remove))
+
+  for p_to_remove in pairs_to_remove:
+    state.annotations.pop(p_to_remove)
+
+  save_json(state.annotations, folder_1 + 'annotations_' + str(args.bucket_id) + '.json')
 
 
 st.info(f"Annotated: {len(state.annotations)}, Remaining: {len(state.sentence_ids)}")
