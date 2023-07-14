@@ -6,6 +6,7 @@ We describe the process of sentence sampling and annotation. In this implementat
 ### Requirements
  - numpy (tested with version 1.23.5)
  - streamlit (tested with version 1.20.0)
+ - scispacy (tested with version 0.5.1)
 
 ### Execution steps
 - Run ```1_sampling_strategy.py --entity_path --cooccurrence_path --abstract_path --disease_name --strategy_id [--n] [--n_conc]``` to sample sentences based on the sampling strategy. Arguments:
