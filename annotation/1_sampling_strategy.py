@@ -47,12 +47,13 @@ if __name__ == '__main__':
 
     print('Number of concept pairs:', format(len(cooc.keys())))
     
+    
     # Find ids with atleast 2 mapped entities
     sampled_ids = []
     for k1 in data_entities:
         if len(list(data_entities[k1].keys())) >= 2:
             sampled_ids.append(k1)
-
+    print('Find ids with atleast 2 mapped entities: DONE')
 
     freq_pairs_per_sent = {}
     for s in sampled_ids:
@@ -79,28 +80,56 @@ if __name__ == '__main__':
         if len(freq_per_pair) > 0:
             freq_pairs_per_sent[s] = {'concept pairs': cui_pairs,
                                       'frequency per pair': freq_per_pair,
-                                      'total frequency': np.sum(freq_per_pair)}
+                                      'total frequency': int(np.sum(freq_per_pair))}
 
     freq_pairs_per_sent_sorted = dict(sorted(freq_pairs_per_sent.items(), 
                                              key=lambda item: item[1]['total frequency'], 
                                              reverse=True))
+    print('Create dictionary with frequency information: DONE')
+    
+    #save_json(freq_pairs_per_sent_sorted, 'freq_pairs_per_sent_sorted.json')
+    #freq_pairs_per_sent_sorted = read_json('freq_pairs_per_sent_sorted.json')
 
     ids, total_freq, inversed_total_freq = [], [], []
     for k1 in freq_pairs_per_sent_sorted:
         ids.append(k1)
         total_freq.append(freq_pairs_per_sent_sorted[k1]['total frequency'])
         inversed_total_freq.append(1/freq_pairs_per_sent_sorted[k1]['total frequency'])
+    print('Frequencies: DONE')
 
+    counter = 0
     probabilities = []
+    total_freq_sum = np.sum(total_freq)
     for f in total_freq:
-        probabilities.append(f/np.sum(total_freq))
+        probabilities.append(float(f/total_freq_sum))
+        counter += 1
+        if counter % 50000 == 0:
+            print('{} probabilities counted.' .format(counter))
+            save_json(probabilities, 'probabilities.json')
+    print('Create probabilities based on frequencies: DONE')
+    #save_json(probabilities, 'probabilities.json')
+    #probabilities = read_json('probabilities.json')
     
+    counter = 0
     inversed_probabilities = []
+    inversed_total_freq_sum = np.sum(inversed_total_freq)
     for f in inversed_total_freq:
-        inversed_probabilities.append(f/np.sum(inversed_total_freq))
+        inversed_probabilities.append(float(f/inversed_total_freq_sum))
+        counter += 1
+        if counter % 50000 == 0:
+            print('{} inversed probabilities counted.' .format(counter))
+            save_json(inversed_probabilities, 'inversed_probabilities.json')
+    print('Create inversed probabilities based on frequencies: DONE')
+    #save_json(inversed_probabilities, 'inversed_probabilities.json')
+    #inversed_probabilities = read_json('inversed_probabilities.json')
 
 
+    counter = 0
     if args.strategy_id == '1':
+        folder = 'strategy_1/' + args.disease_name + '/'
+        if not(os.path.isdir(folder)):
+            os.makedirs(folder)
+
         buckets = []
         ids_to_be_sampled = ids.copy()
         probabilities_to_be_sampled = probabilities.copy()
@@ -142,7 +171,9 @@ if __name__ == '__main__':
                 inversed_probabilities_to_be_sampled[-1] +=  inversed_probabilities_to_be_sampled[index]
                 del inversed_probabilities_to_be_sampled[index]
             
-            buckets.append(random.shuffle(list(b1) +list(b2)))
+            #buckets.append(random.shuffle(list(b1) + list(b2)))
+            save_json(random.shuffle(list(b1) + list(b2)), 'bucket_' + str(counter) + '.json', folder)
+            counter += 1
 
         try:
             # Remove artificial id.
@@ -154,12 +185,12 @@ if __name__ == '__main__':
             buckets.append(ids_to_be_sampled)
 
 
-        folder = 'strategy_1/' + args.disease_name + '/'
-        if not(os.path.isdir(folder)):
-            os.makedirs(folder)
+        #folder = 'strategy_1/' + args.disease_name + '/'
+        #if not(os.path.isdir(folder)):
+        #    os.makedirs(folder)
 
-        for i, b in enumerate(buckets):
-            save_json(b, 'bucket_' + str(i) + '.json', folder)
+        #for i, b in enumerate(buckets):
+        #    save_json(b, 'bucket_' + str(i) + '.json', folder)
     elif args.strategy_id == '2':
         concept_pairs = list(cooc.keys())
         buckets_2 = []

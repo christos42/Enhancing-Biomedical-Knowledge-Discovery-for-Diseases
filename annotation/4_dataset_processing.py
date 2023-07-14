@@ -1,24 +1,38 @@
 import argparse
 import os 
 import sys
-from nltk.tokenize import word_tokenize
+#from nltk.tokenize import word_tokenize
+import scispacy
+import spacy
 import numpy as np
 
 sys.path.append('../utils/')
 from utils import read_json, save_json, find_json_files
 
 
+nlp = spacy.load("en_core_sci_scibert")
+tokenizer = nlp.tokenizer
+
+
 def tokenize_and_extract_spans(sentence):
-    tokens = word_tokenize(sentence)
+    #tokens = word_tokenize(sentence)
+    tokens_obj = tokenizer(sentence)
+    tokens = []
+    for t in tokens_obj:
+    	tokens.append(t.text)
+    # Corner case
+    for i in range(len(tokens)):
+    	if tokens[i] == '``' or tokens[i] == "''":
+    		tokens[i] = '"'
     spans = []
     for w in tokens:
         if len(spans) == 0:
             spans.append(list(np.arange(0, len(w) + 1)))
         else:
-            if sentence[spans[-1][-1]] == ' ':
-                spans.append(list(np.arange(spans[-1][-1] + 1, spans[-1][-1] + 1 + len(w) + 1)))
-            else:
-                spans.append(list(np.arange(spans[-1][-1], spans[-1][-1] + len(w) + 1)))
+	        if sentence[spans[-1][-1]] == ' ':
+	            spans.append(list(np.arange(spans[-1][-1] + 1, spans[-1][-1] + 1 + len(w) + 1)))
+	        else:
+	            spans.append(list(np.arange(spans[-1][-1], spans[-1][-1] + len(w) + 1)))
     
     return tokens, spans
 
@@ -40,9 +54,23 @@ def find_start_end_token(position, spans):
     flag_start, flag_end = 0, 0
     for i, s in enumerate(spans):
         if s[0] == start:
-            start_ent = i
+        	flag_start = 1
+        	start_ent = i
         if s[-1] == end:
-            end_ent = i
+        	flag_end = 1
+        	end_ent = i
+
+    # Flexible matching 
+    if flag_start == 0:
+    	for i, s in enumerate(spans):
+        	if start in s:
+        		start_ent = i
+
+    if flag_end == 0:
+    	for i, s in enumerate(spans):
+        	if end in s:
+        		end_ent = i
+
     return [start_ent, end_ent]    
 
 
