@@ -49,4 +49,9 @@ This subdirectory consisted of the supervised approaches of the study.
     'cls_start_start', 'cls_end_end', 'start_inter_start', 'end_inter_end', 'start_end_start_end', 
     'cls_start_end_start_end', 'start_end_inter_start_end')
 
+---
+
+### Notes
+  - [NOTE 1] : Example running scripts are provided in <i>run_scripts</i> folder.
+
 
