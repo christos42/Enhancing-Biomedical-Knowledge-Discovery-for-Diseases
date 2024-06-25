@@ -23,8 +23,9 @@ We describe the process of sentence sampling and annotation. In this implementat
   - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
   - strategy_id (string): the id of the sentence sampling strategy (supported values: 1 and 2)
   - bucket_id (int): the id (number) of the bucket with sentences for annotation
-- Run ```streamlit run annotation_app_s.py -- --bucket_id --disease_name --annotator``` to start the annotation application. Arguments:
+- Run ```streamlit run annotation_app_s.py -- --bucket_id --trial_id --disease_name --annotator``` to start the annotation application. Arguments:
   - bucket_id (int): : the id (number) of the bucket with sentences for annotation
+  - trial_id (int): : the id (number) of the execution trial (useful for file naming and progress tracking)
   - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
   - annotator (string): the name of the annotator/expert
 - Run ```python 3_dataset_creation.py --entity_path --abstract_path --disease_name --annotator``` to process the annotations and create the datasets. Arguments:
