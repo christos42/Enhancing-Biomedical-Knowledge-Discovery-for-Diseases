@@ -3,6 +3,7 @@ import argparse
 import random
 import sys 
 import os
+from datetime import datetime
 
 sys.path.append('../utils/')
 from utils import read_json, save_json
@@ -13,12 +14,22 @@ state = st.session_state
 parser = argparse.ArgumentParser()
 parser.add_argument("--bucket_id", type=int, required=True, 
                     help="the id number of the bucket")
+parser.add_argument("--trial_id", type=int, required=True,
+                    help="the id number of the trial")
 parser.add_argument("--disease_name", type=str, required=True, 
                     help="the name of the disease")
 parser.add_argument("--annotator", type=str, required=True, 
                     help="the name of the annotator")
 
 args = parser.parse_args()
+
+
+# Getting the current date and time
+dt = datetime.now()
+
+# getting the timestamp
+ts = str(datetime.timestamp(dt))
+ts = ts.replace('.', '_')
 
 markdown_sentences = read_json('markdown_sentences/' + args.disease_name + '/markdown_sentences_' + str(args.bucket_id) + '.json') 
 
@@ -34,8 +45,8 @@ if not(os.path.isdir(folder_3)):
   os.makedirs(folder_3)
 
 
-OPTIONS_CORRELATION = ["Positive Correlation", "Negative Correlation", "Complex Correlation", "No Correlation"]
-LEN_OPTIONS_CORRELATION = [len(s) for s in OPTIONS_CORRELATION]
+OPTIONS_RELATION = ["Positive Relation", "Negative Relation", "Complex Relation", "No Relation"]
+LEN_OPTIONS_RELATION = [len(s) for s in OPTIONS_RELATION]
 
 if "annotations" not in state:
   state.annotations = {}
@@ -54,12 +65,12 @@ if "sentences_to_be_removed" not in state:
 
 def annotation_accumulation(flag, label):
   if flag == "1":
-    state.annotations[state.current_sentence_id]['correlation'] = label
+    state.annotations[state.current_sentence_id]['relation'] = label
   elif flag == "2":
     state.annotations[state.current_sentence_id]['useful text'] = label
 
   added_information = list(state.annotations[state.current_sentence_id].keys())
-  if 'correlation' in added_information and 'useful text' in added_information:
+  if 'relation' in added_information and 'useful text' in added_information:
     state.sentence_ids.remove(state.current_sentence_id)
     st.session_state["foo"] = ""
     if state.sentence_ids:
@@ -75,7 +86,6 @@ def remove_entity(entity_index):
   else:
     state.entities_to_be_removed[sentence_id].append(entity_index)
   # Remove the concept pairs that contain this entity
-  
   pairs_to_remove = []
   for id_ in state.sentence_ids:
     tmp_sentence_id = '_'.join(id_.split('_')[:2])
@@ -141,8 +151,8 @@ if state.sentence_ids:
   st.write('----------------------------------------------')
 
   st.write('Define the relation between the colored concepts/entities: {} & {}' .format(entity_1_name, entity_2_name))
-  c1 = st.columns(len(OPTIONS_CORRELATION))
-  for idx, option1 in enumerate(OPTIONS_CORRELATION):
+  c1 = st.columns(len(OPTIONS_RELATION))
+  for idx, option1 in enumerate(OPTIONS_RELATION):
     c1[idx].button(f"{option1}", on_click=annotation_accumulation, args=("1", option1, ))
 
   st.write('----------------------------------------------')
@@ -155,9 +165,9 @@ if state.sentence_ids:
   st.button('Done!', type ='primary', on_click=annotation_accumulation, args=("2", text_input, ))
 
   # Constantly save the annotations
-  save_json(state.annotations, folder_1 + 'annotations_' + str(args.bucket_id) + '.json')
-  save_json(state.entities_to_be_removed, folder_2 + 'entities_to_be_removed_' + str(args.bucket_id) + '.json')
-  save_json(state.sentences_to_be_removed, folder_3 + 'sentences_to_be_removed_' + str(args.bucket_id) + '.json')
+  save_json(state.annotations, folder_1 + 'annotations_' + str(args.bucket_id) + '_' + str(args.trial_id) + '_' + ts + '.json')
+  save_json(state.entities_to_be_removed, folder_2 + 'entities_to_be_removed_' + str(args.bucket_id) + '_' + str(args.trial_id) + '_' + ts +  '.json')
+  save_json(state.sentences_to_be_removed, folder_3 + 'sentences_to_be_removed_' + str(args.bucket_id) + '_' + str(args.trial_id) + '_' + ts + '.json')
 
 else:
   st.info("Everything annotated.")
@@ -179,7 +189,7 @@ else:
   for p_to_remove in pairs_to_remove:
     state.annotations.pop(p_to_remove)
 
-  save_json(state.annotations, folder_1 + 'annotations_' + str(args.bucket_id) + '.json')
+  save_json(state.annotations, folder_1 + 'annotations_' + str(args.bucket_id) + '_' + str(args.trial_id) + '_' + ts + '.json')
 
 
 st.info(f"Annotated: {len(state.annotations)}, Remaining: {len(state.sentence_ids)}")
