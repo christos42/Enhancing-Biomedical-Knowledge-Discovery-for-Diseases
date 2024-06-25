@@ -26,7 +26,7 @@ def create_dataset(annotations, data_entities, abstracts):
         
         dataset[k2 + '_rec_' + str(count_rec_per_sent[k2])] = {'sentence': sentence,
                                                                'entities': (data_entities[k2][all_entities[entity_1_index]], data_entities[k2][all_entities[entity_2_index]]),
-                                                               'correlation': annotations[k1]['correlation'],
+                                                               'relation': annotations[k1]['relation'],
                                                                'useful_text': annotations[k1]['useful text']}
 
     return dataset

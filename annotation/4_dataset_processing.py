@@ -190,7 +190,7 @@ if __name__ == '__main__':
 	                                    'entities': [dataset_total[rec]['entities'][0]['range'], dataset_total[rec]['entities'][1]['range']],
 	                                    'updated_entities': [dataset_total[rec]['entities'][0]['updated_range'], dataset_total[rec]['entities'][1]['updated_range']],
 	                                    'entities_types': [dataset_total[rec]['entities'][0]['mapped_semantic_type'], dataset_total[rec]['entities'][1]['mapped_semantic_type']],
-	                                    'correlation': dataset_total[rec]['correlation']}
+	                                    'relation': dataset_total[rec]['relation']}
 
 	
 	save_json(dataset_total, args.dataset_path + args.disease_name + '/' + args.annotator + '/dataset_total.json')		
