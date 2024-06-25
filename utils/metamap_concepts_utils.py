@@ -145,6 +145,7 @@ def check_expansion(position, sentence):
     new_p_stop = p_stop
     for index in range(p_stop, len(sentence)):
         #if (sentence[index] in [' ', '(', ')', '<', '>']) or (sentence[index] == '.' and index == len(sentence) - 1):
+        #if (sentence[index] in [' ', ',']) or (sentence[index] == '.' and index == len(sentence) - 1):
         if (sentence[index] in [' ']) or (sentence[index] == '.' and index == len(sentence) - 1):
             new_p_stop = index - 1
             break
