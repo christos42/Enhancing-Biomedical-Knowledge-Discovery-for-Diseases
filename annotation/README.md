@@ -1,6 +1,6 @@
 ## Annotation application 
 ---
-We describe the process of sentence sampling and annotation. In this implementation, the output of the Metamap pipeline is used,
+We describe the process of sentence sampling and annotation. In this implementation, the output of the Metamap pipeline is used.
 
 ## Setup
 ### Requirements
