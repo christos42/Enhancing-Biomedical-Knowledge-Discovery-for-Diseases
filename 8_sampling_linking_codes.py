@@ -34,6 +34,11 @@ def sampling_linking_codes_strategy(data_merged):
                             dict_to_add['linker'] = 'drugbank'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
+                        elif len(linked_ent['mesh']['cui']) > 0:
+                            dict_to_add = linked_ent['mesh'].copy()
+                            dict_to_add['linker'] = 'mesh'
+                            if dict_to_add not in sampled_linked_ent:
+                                sampled_linked_ent.append(dict_to_add)
                         elif len(linked_ent['hpo']['cui']) > 0:
                             dict_to_add = linked_ent['hpo'].copy()
                             dict_to_add['linker'] = 'hpo'
@@ -44,9 +49,14 @@ def sampling_linking_codes_strategy(data_merged):
                             dict_to_add['linker'] = 'go'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
-                        elif len(linked_ent['mesh']['cui']) > 0:
-                            dict_to_add = linked_ent['mesh'].copy()
-                            dict_to_add['linker'] = 'mesh'
+                        elif len(linked_ent['ncbi']['cui']) > 0:
+                            dict_to_add = linked_ent['ncbi'].copy()
+                            dict_to_add['linker'] = 'ncbi'
+                            if dict_to_add not in sampled_linked_ent:
+                                sampled_linked_ent.append(dict_to_add)
+                        elif len(linked_ent['snomed']['cui']) > 0:
+                            dict_to_add = linked_ent['snomed'].copy()
+                            dict_to_add['linker'] = 'snomed'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
                         elif len(linked_ent['umls']['cui']) > 0:
@@ -87,6 +97,16 @@ def sampling_linking_codes_strategy(data_merged):
                             dict_to_add['linker'] = 'mesh'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
+                        elif len(linked_ent['ncbi']['cui']) > 0:
+                            dict_to_add = linked_ent['ncbi'].copy()
+                            dict_to_add['linker'] = 'ncbi'
+                            if dict_to_add not in sampled_linked_ent:
+                                sampled_linked_ent.append(dict_to_add)
+                        elif len(linked_ent['snomed']['cui']) > 0:
+                            dict_to_add = linked_ent['snomed'].copy()
+                            dict_to_add['linker'] = 'snomed'
+                            if dict_to_add not in sampled_linked_ent:
+                                sampled_linked_ent.append(dict_to_add)
                         elif len(linked_ent['umls']['cui']) > 0:
                             dict_to_add = linked_ent['umls'].copy()
                             dict_to_add['linker'] = 'umls'
@@ -100,9 +120,9 @@ def sampling_linking_codes_strategy(data_merged):
                             dict_to_add['linker'] = 'hpo'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
-                        elif len(linked_ent['go']['cui']) > 0:
-                            dict_to_add = linked_ent['go'].copy()
-                            dict_to_add['linker'] = 'go'
+                        elif len(linked_ent['mesh']['cui']) > 0:
+                            dict_to_add = linked_ent['mesh'].copy()
+                            dict_to_add['linker'] = 'mesh'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
                         elif len(linked_ent['rxnorm']['cui']) > 0:
@@ -120,9 +140,19 @@ def sampling_linking_codes_strategy(data_merged):
                             dict_to_add['linker'] = 'drugbank'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
-                        elif len(linked_ent['mesh']['cui']) > 0:
-                            dict_to_add = linked_ent['mesh'].copy()
-                            dict_to_add['linker'] = 'mesh'
+                        elif len(linked_ent['go']['cui']) > 0:
+                            dict_to_add = linked_ent['go'].copy()
+                            dict_to_add['linker'] = 'go'
+                            if dict_to_add not in sampled_linked_ent:
+                                sampled_linked_ent.append(dict_to_add)
+                        elif len(linked_ent['ncbi']['cui']) > 0:
+                            dict_to_add = linked_ent['ncbi'].copy()
+                            dict_to_add['linker'] = 'ncbi'
+                            if dict_to_add not in sampled_linked_ent:
+                                sampled_linked_ent.append(dict_to_add)
+                        elif len(linked_ent['snomed']['cui']) > 0:
+                            dict_to_add = linked_ent['snomed'].copy()
+                            dict_to_add['linker'] = 'snomed'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
                         elif len(linked_ent['umls']['cui']) > 0:
@@ -161,6 +191,16 @@ def sampling_linking_codes_strategy(data_merged):
                         elif len(linked_ent['mesh']['cui']) > 0:
                             dict_to_add = linked_ent['mesh'].copy()
                             dict_to_add['linker'] = 'mesh'
+                            if dict_to_add not in sampled_linked_ent:
+                                sampled_linked_ent.append(dict_to_add)
+                        elif len(linked_ent['ncbi']['cui']) > 0:
+                            dict_to_add = linked_ent['ncbi'].copy()
+                            dict_to_add['linker'] = 'ncbi'
+                            if dict_to_add not in sampled_linked_ent:
+                                sampled_linked_ent.append(dict_to_add)
+                        elif len(linked_ent['snomed']['cui']) > 0:
+                            dict_to_add = linked_ent['snomed'].copy()
+                            dict_to_add['linker'] = 'snomed'
                             if dict_to_add not in sampled_linked_ent:
                                 sampled_linked_ent.append(dict_to_add)
                         elif len(linked_ent['umls']['cui']) > 0:
