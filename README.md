@@ -34,16 +34,16 @@ For a detailed description of the framework, see our paper:
   - input_path (string) (optional, default value: <i>output/abstracts/</i>): the path with the extracted abstracts
 
 For the mention extraction two pipelines are provided. One is using the [SciSpacy library](https://github.com/allenai/scispacy) [1] to extract the mentions 
-and link them in knowledge bases/vocabularies (e.g. UMLS, MESH, etc.). The other one is using the UMLS MetaMapLite 
+and link them in knowledge bases/vocabularies (e.g. UMLS [2], MESH, etc.). The other one is using the UMLS MetaMapLite [3] 
 tool for mention extraction and mapping.
 
 #### SciSpacy pipeline
-The official SciSpacy library utilizes an older UMLS version (2020AA) to train and create the linkers 
+The official SciSpacy library utilizes an older UMLS [2] version (2020AA) to train and create the linkers 
 (char-3grams string overlap-based search). Follow the next steps to update the linkers:
-- [Download](https://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html) the new UMLS version and 
+- [Download](https://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html) the new UMLS version [2] and 
 store the files under the folder ```UMLS_update_SciSpacy```.
 - Execute the ```knowledge_base_creation.ipynb``` notebook to extract the processed [knowledge bases](https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html) 
-(UMLS, GO, NCBI, SNOMEDCT_US, HPO, MESH, RXNORM, DRUGBANK, GS).
+(UMLS [2], GO [4], NCBI [5], SNOMEDCT_US [6], HPO [7], MESH [8], RXNORM [9], DRUGBANK [10], [GS](https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/GS/index.html)).
 - Execute the ```tfidf_creation.ipynb``` notebook to create the linkers.
 - Find the location of SciSpacy package (i.e. <i>miniconda3/envs/ml_42/lib/python3.8/site-packages/scispacy/</i>). Update the paths of the created linkers accordingly in the scripts ```linking_utils.py``` and ```candidate_generation.py```
 that are contained in SciSpacy library. We provide our updated version of the scripts for reference.
@@ -99,7 +99,7 @@ that are contained in SciSpacy library. We provide our updated version of the sc
                have been successfully extracted the script prints the message: "All abstracts have been extracted successfully!". 
                In the case of API failure, in order to retrieve all the abstracts the script should be executed iteratively 
                until the message that indicates the success is printed. 
-  - [NOTE 2] : We utilise the [4 provided models](https://allenai.github.io/scispacy/) (CRAFT, JNLPBA, BC5CDR, BIONLP13CG) to
+  - [NOTE 2] : We utilise the [4 provided models](https://allenai.github.io/scispacy/) (CRAFT [11], JNLPBA [12], BC5CDR [13], BIONLP13CG [14]) to
                extract a wide range of entity types. 
   - [NOTE 3] : In the implementation, we hypothesize that all the supported linkers are used. If this is not the case comment-out
                lines of code accordingly in the ```6_entity_linking_merge.py --date [--input_path]``` script and adjust also the 
@@ -120,4 +120,40 @@ BibTex:
 ```
 [1] Neumann, M., King, D., Beltagy, I., & Ammar, W. (2019, August). ScispaCy: Fast and Robust Models for 
     Biomedical Natural Language Processing. In Proceedings of the 18th BioNLP Workshop and Shared Task (pp. 319-327).
+[2] Bodenreider O. The Unified Medical Language System (UMLS): integrating biomedical terminology. 
+    Nucleic Acids Res. 2004 Jan 1;32(Database issue):D267-70. doi: 10.1093/nar/gkh061. 
+    PubMed PMID: 14681409; PubMed Central PMCID: PMC308795.
+[3] Alan R Aronson. 2001. Effective mapping of biomedical text to the umls metathesaurus: the metamap program. 
+    In Proceedings of the AMIA Symposium, page 17. American Medical Informatics Association.
+[4] Gene Ontology Consortium. 2004. The gene ontology (go) database and informatics resource. 
+    Nucleic acids research, 32(suppl_1):D258–D261. 
+[5] Conrad L Schoch, Stacy Ciufo, Mikhail Domrachev, Carol L Hotton, Sivakumar Kannan, Rogneda Khovanskaya, Detlef Leipe, 
+    Richard Mcveigh, Kathleen O’Neill, Barbara Robbertse, et al. 2020. Ncbi taxonomy: a comprehensive update on curation, 
+    resources and tools. Database, 2020:baaa062.
+[6] Michael Q Stearns, Colin Price, Kent A Spackman, and Amy Y Wang. 2001. 
+    Snomed clinical terms: overview of the development process and project status. 
+    In Proceedings of the AMIA Symposium, page 1002. American Medical Informatics Association.
+[7] Sebastian Köhler, Michael Gargano, Nicolas Matentzoglu, Leigh C Carmody, David Lewis-Smith, Nicole A Vasilevsky, 
+    Daniel Danis, Ganna Balagura, Gareth Baynam, Amy M Brower, et al. 2021. 
+    The human phenotype ontology in 2021. Nucleic acids research, 49(D1):D1207–D1217. 
+[8] Carolyn E Lipscomb. 2000. Medical subject headings (mesh). Bulletin of the Medical Library Association, 88(3):265.
+[9] Stuart J Nelson, Kelly Zeng, John Kilbourne, Tammy Powell, and Robin Moore. 2011. 
+    Normalized names for clinical drugs: Rxnorm at 6 years. 
+    Journal of the American Medical Informatics Association, 18(4):441–448.
+[10] Craig Knox, Mike Wilson, Christen M Klinger, Mark Franklin, Eponine Oler, Alex Wilson, Allison Pon, Jordan Cox, 
+    Na Eun Chin, Seth A Strawbridge, et al. 2024. Drugbank 6.0: the drugbank knowledgebase for 2024. 
+    Nucleic Acids Research, 52(D1):D1265–D1275. 
+[11] Michael Bada, Miriam Eckert, Donald Evans, Kristin Garcia, Krista Shipley, Dmitry Sitnikov, William A Baumgartner, 
+     K Bretonnel Cohen, Karin Verspoor, Judith A Blake, et al. 2012. Concept annotation in the craft corpus. 
+     BMC bioinformatics, 13:1–20.
+[12] Nigel Collier, Tomoko Ohta, Yoshimasa Tsuruoka, Yuka Tateisi, and Jin-Dong Kim. 2004. 
+     Introduction to the bio-entity recognition task at JNLPBA. 
+     In Proceedings of the International Joint Workshop on Natural Language Processing in Biomedicine 
+     and its Applications (NLPBA/BioNLP), pages 73–78, Geneva, Switzerland. COLING. 
+[13] Jiao Li, Yueping Sun, Robin J Johnson, Daniela Sciaky, Chih-Hsuan Wei, Robert Leaman, Allan Peter Davis, 
+     Carolyn J Mattingly, Thomas C Wiegers, and Zhiyong Lu. 2016. 
+     Biocreative v cdr task corpus: a resource for chemical disease relation extraction. Database, 2016.
+[14] Jin-Dong Kim, Yue Wang, and Yamamoto Yasunori. 2013. The Genia event extraction shared task, 2013 edition - overview. 
+     In Proceedings of the BioNLP Shared Task 2013 Workshop, pages 8–15, Sofia, Bulgaria.
+     Association for Computational Linguistics.
 ```
