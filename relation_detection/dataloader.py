@@ -14,9 +14,9 @@ class collater_1():
     def __call__(self, data):
         words = [item[0] for item in data]
         entities_ranges = [item[1] for item in data]
-        correlations = [item[2] for item in data]
+        relations = [item[2] for item in data]
 
-        return [words, entities_ranges, correlations]
+        return [words, entities_ranges, relations]
 
 
 class DataProcess(Dataset):
@@ -37,18 +37,18 @@ class DataProcess(Dataset):
 
         if exp_setting == 'binary':
             if use_distantly_supervised_data:
-                self.mapping = {'No Correlation': 0,
-                                'Correlation': 1}
+                self.mapping = {'No Relation': 0,
+                                'Relation': 1}
             else:
-                self.mapping = {'No Correlation': 0,
-                                'Positive Correlation': 1,
-                                'Complex Correlation': 1,
-                                'Negative Correlation': 1}
+                self.mapping = {'No Relation': 0,
+                                'Positive Relation': 1,
+                                'Complex Relation': 1,
+                                'Negative Relation': 1}
         elif exp_setting == 'multi_class':
-            self.mapping = {'No Correlation': 0,
-                            'Positive Correlation': 1,
-                            'Complex Correlation': 2,
-                            'Negative Correlation': 3}
+            self.mapping = {'No Relation': 0,
+                            'Positive Relation': 1,
+                            'Complex Relation': 2,
+                            'Negative Relation': 3}
 
     def __len__(self):
         return len(self.data)
@@ -56,7 +56,7 @@ class DataProcess(Dataset):
     def __getitem__(self, idx):
         words = self.data[idx][0]
         entities_range = self.data[idx][1]
-        correlation = self.mapping[self.data[idx][2]]
+        relation = self.mapping[self.data[idx][2]]
 
         #sent_str = ' '.join(words)
         #bert_words = self.tokenizer.tokenize(sent_str)
@@ -66,7 +66,7 @@ class DataProcess(Dataset):
         word_to_bep = self.map_origin_word_to_bert(words)
         new_entities_range = self.ner_label_transform(entities_range, word_to_bep)
 
-        return (words, new_entities_range, correlation)
+        return (words, new_entities_range, relation)
 
 
     def map_origin_word_to_bert(self, words):
@@ -96,9 +96,9 @@ def data_preprocess(keys, data):
         dic = data[k]
         text = dic['updated_tokens']
         entities = dic['updated_entities']
-        correlation = dic['correlation']
+        relation = dic['relation']
 
-        processed += [(text, entities, correlation)]
+        processed += [(text, entities, relation)]
     return processed
 
 
@@ -108,9 +108,9 @@ def data_preprocess_distant_data(keys, data, exp_setting):
         dic = data[k]
         text = dic['updated_tokens']
         entities = dic['updated_entities']
-        correlation = dic['correlation'][exp_setting]
+        relation = dic['relation'][exp_setting]
 
-        processed += [(text, entities, correlation)]
+        processed += [(text, entities, relation)]
     return processed
 
 

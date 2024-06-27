@@ -44,8 +44,8 @@ def evaluate(test_batch, loss_fn, args, test_or_dev):
             # Inference
             text = data[0]
             entities_range = data[1]
-            correlation_gold = data[2]
-            all_gold_labels.extend(correlation_gold)
+            relation_gold = data[2]
+            all_gold_labels.extend(relation_gold)
 
             logits = model(text, entities_range)
             if args.exp_setting == 'binary':
@@ -54,16 +54,16 @@ def evaluate(test_batch, loss_fn, args, test_or_dev):
                 predictions = (predicted_probabilities > 0.5).int()
                 predictions = torch.squeeze(predictions.T, 0)
                 all_predictions.extend(predictions.tolist())
-                correlation_gold_tensor = torch.tensor(correlation_gold).view(len(correlation_gold), -1).float().to(device)
+                relation_gold_tensor = torch.tensor(relation_gold).view(len(relation_gold), -1).float().to(device)
             elif args.exp_setting == 'multi_class':
                 softmax = torch.nn.Softmax(dim=1)
                 predicted_probabilities = softmax(logits)
                 predictions = torch.argmax(predicted_probabilities, 1)
                 all_predictions.extend(predictions.tolist())
-                correlation_gold_tensor = torch.tensor(correlation_gold).to(device)
+                relation_gold_tensor = torch.tensor(relation_gold).to(device)
 
             # Evaluation
-            loss_ev = loss_fn(logits, correlation_gold_tensor)
+            loss_ev = loss_fn(logits, relation_gold_tensor)
             test_loss += loss_ev
 
         if args.exp_setting == 'binary':
@@ -161,7 +161,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--exp_setting", default="binary", type=str, required=True,
                         choices=["binary", "multi_class"],
-                        help="the experimental setting for the task (correlation detection): binary or multi_class")
+                        help="the experimental setting for the task (relation detection): binary or multi_class")
 
     parser.add_argument("--eval_metric", default="micro", type=str, choices=["micro", "macro"],
                         help="micro f1 or macro f1")
@@ -203,7 +203,7 @@ if __name__ == '__main__':
                         help="the id of the split if cross-validation is applied")
 
     parser.add_argument("--aggregation", type=str, required=True,
-                        choices=["start_start", "end_end", "ent_context_ent_context", "start_end_start_end",
+                        choices=["start_start", "end_end", "ent_context_ent_context", "start_end_start_end", "inter",
                                  "cls_start_start", "cls_end_end", "cls_ent_context_ent_context", "cls_inter",
                                  "cls_start_end_start_end", "start_inter_start", "end_inter_end", "start_end_inter_start_end",
                                  "ent_context_inter_ent_context", "atlop_context_vector_only", "atlop_context_vector"],
@@ -280,15 +280,15 @@ if __name__ == '__main__':
 
                 text = data[0]
                 entities_range = data[1]
-                correlation_gold = data[2]
+                relation_gold = data[2]
                 if args.exp_setting == 'binary':
-                    correlation_gold_tensor = torch.tensor(correlation_gold).view(len(correlation_gold), -1).float().to(device)
+                    relation_gold_tensor = torch.tensor(relation_gold).view(len(relation_gold), -1).float().to(device)
                 elif args.exp_setting == 'multi_class':
-                    correlation_gold_tensor = torch.tensor(correlation_gold).to(device)
+                    relation_gold_tensor = torch.tensor(relation_gold).to(device)
 
                 logits = model(text, entities_range)
 
-                loss_t = loss_fn(logits, correlation_gold_tensor)
+                loss_t = loss_fn(logits, relation_gold_tensor)
 
                 loss_t.backward()
 
