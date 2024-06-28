@@ -15,7 +15,8 @@
 ### Execution steps
  - Run ```main.py --dataset_path --do_train --do_eval --model_id --epoch --batch_size --eval_batch_size --embed_mode 
    --exp_setting --eval_metric --lr --weight_decay --seed --dropout --do_gradient_clipping --clip --steps --output_dir
-   --output_file --sentence_wise_splits --fold --aggregation``` to train and evaluate the models. [NOTE 1]
+   --output_file --sentence_wise_splits --fold --aggregation --encoding_layer --attention_head``` 
+   to train and evaluate the models. [NOTE 1]
    Arguments:
    - dataset_path (string): the path of the dataset
    - do_train (store_value): boolean value to define if the training session is executed.
@@ -46,6 +47,8 @@
    - aggregation (string): the aggregation strategy after the LM ("ent_context_ent_context" --> R<sub>D</sub> , 
      "atlop_context_vector_only" --> R<sub>O</sub>, "atlop_context_vector" --> R<sub>P</sub>, 
      "layer_specific" --> attention scores, "head_specific" --> attention scores, 'non_specific' --> attention scores (all)
+   - encoding_layer (int): the encoding layer of the LM to extract the representation
+   - attention_head (int): the attention head of the LM to extract the attention scores
 ---
 
 ### Notes
