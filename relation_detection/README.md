@@ -1,5 +1,5 @@
 # Relation Detection (LaMReDA & LaMReDM)
-This subdirectory consist of the supervised approaches of the study, presenting the LaMReDA and LaMReDM models.
+This subdirectory consist of the supervised approaches of the study, presenting the LaMReDA and LaMReDM models and the probing experiments.
 
 ---
 
