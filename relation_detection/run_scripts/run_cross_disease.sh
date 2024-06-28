@@ -4,7 +4,7 @@
 gpu_id=0
 exp_id=1
 dataset_path='../datasets/ReDReS.json'
-#dataset_path='alzheimer_s_disease_dataset.json'
+#dataset_path='../datasets/ReDAD.json'
 #dataset_path_eval='../datasets/ReDReS.json'
 dataset_path_eval='../datasets/ReDAD.json'
 evaluation_on='alzheimer_s_disease'

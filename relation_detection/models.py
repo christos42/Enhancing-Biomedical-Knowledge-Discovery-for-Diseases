@@ -433,28 +433,29 @@ class LaMReDM(torch.nn.Module):
                 m_ent = torch.mul(m_ent_1, m_ent_2)
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'start_end_start_end':
-                m_ent_1 = self.head_projector(r1[start_ent_1]) + self.tail_projector(
-                    r1[start_ent_1]) + self.head_projector(r1[end_ent_1]) + self.tail_projector(r1[end_ent_1])
-                m_ent_2 = self.head_projector(r1[start_ent_2]) + self.tail_projector(
-                    r1[start_ent_2]) + self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_2])
+                m_ent_1 = torch.mul(self.head_projector(r1[start_ent_1]) + self.tail_projector(r1[start_ent_1]), self.head_projector(r1[end_ent_1]) + self.tail_projector(r1[end_ent_1]))
+                m_ent_2 = torch.mul(self.head_projector(r1[start_ent_2]) + self.tail_projector(r1[start_ent_2]), self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_2]))
                 m_ent = torch.mul(m_ent_1, m_ent_2)
                 rel_representations.append(m_ent)
             if self.args.aggregation == 'cls_start_start':
                 m_ent_1 = self.head_projector(r1[start_ent_1]) + self.tail_projector(r1[start_ent_1])
                 m_ent_2 = self.head_projector(r1[start_ent_2]) + self.tail_projector(r1[start_ent_2])
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(r1[0])
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(r1[0]))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'cls_end_end':
                 m_ent_1 = self.head_projector(r1[end_ent_1]) + self.tail_projector(r1[end_ent_1])
                 m_ent_2 = self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_2])
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(r1[0])
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(r1[0]))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'cls_start_end_start_end':
-                m_ent_1 = self.head_projector(r1[start_ent_1]) + self.tail_projector(
-                    r1[start_ent_1]) + self.head_projector(r1[end_ent_1]) + self.tail_projector(r1[end_ent_1])
-                m_ent_2 = self.head_projector(r1[start_ent_2]) + self.tail_projector(
-                    r1[start_ent_2]) + self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_2])
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(r1[0])
+                m_ent_1 = torch.mul(self.head_projector(r1[start_ent_1]) + self.tail_projector(r1[start_ent_1]),
+                                    self.head_projector(r1[end_ent_1]) + self.tail_projector(r1[end_ent_1]))
+                m_ent_2 = torch.mul(self.head_projector(r1[start_ent_2]) + self.tail_projector(r1[start_ent_2]),
+                                    self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_2]))
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(r1[0]))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'start_inter_start':
                 if end_ent_1 + 1 == start_ent_2:
@@ -471,7 +472,8 @@ class LaMReDM(torch.nn.Module):
                     r1[start_ent_1])
                 m_ent_2 = self.head_projector(r1[start_ent_2]) + self.tail_projector(
                     r1[start_ent_2])
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(inter_rep)
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'end_inter_end':
                 if end_ent_1 + 1 == start_ent_2:
@@ -488,7 +490,8 @@ class LaMReDM(torch.nn.Module):
                     r1[end_ent_1])
                 m_ent_2 = self.head_projector(r1[end_ent_2]) + self.tail_projector(
                     r1[end_ent_2])
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(inter_rep)
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'start_end_inter_start_end':
                 if end_ent_1 + 1 == start_ent_2:
@@ -501,11 +504,12 @@ class LaMReDM(torch.nn.Module):
                     inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
                 else:
                     inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                m_ent_1 = self.head_projector(r1[start_ent_1]) + self.tail_projector(
-                    r1[start_ent_1]) + self.head_projector(r1[end_ent_1])
-                m_ent_2 = self.head_projector(r1[start_ent_2]) + self.tail_projector(
-                    r1[start_ent_2]) + self.head_projector(r1[end_ent_2])
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(inter_rep)
+                m_ent_1 = torch.mul(self.head_projector(r1[start_ent_1]) + self.tail_projector(r1[start_ent_1]),
+                                    self.head_projector(r1[end_ent_1]) + self.tail_projector(r1[end_ent_1]))
+                m_ent_2 = torch.mul(self.head_projector(r1[start_ent_2]) + self.tail_projector(r1[start_ent_2]),
+                                    self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_2]))
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'cls_inter':
                 if end_ent_1 + 1 == start_ent_2:
@@ -532,7 +536,8 @@ class LaMReDM(torch.nn.Module):
                 m_ent_2 = torch.mean(r1[start_ent_2 + 1:end_ent_2], 0)
                 m_ent_1 = self.head_projector(m_ent_1) + self.tail_projector(m_ent_1)
                 m_ent_2 = self.head_projector(m_ent_2) + self.tail_projector(m_ent_2)
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(r1[0])
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(r1[0]))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'ent_context_inter_ent_context':
                 if end_ent_1 + 1 == start_ent_2:
@@ -549,7 +554,8 @@ class LaMReDM(torch.nn.Module):
                 m_ent_2 = torch.mean(r1[start_ent_2 + 1:end_ent_2], 0)
                 m_ent_1 = self.head_projector(m_ent_1) + self.tail_projector(m_ent_1)
                 m_ent_2 = self.head_projector(m_ent_2) + self.tail_projector(m_ent_2)
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(inter_rep)
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'atlop_context_vector':
                 attentions = x['attentions'][-1][i]
@@ -570,7 +576,8 @@ class LaMReDM(torch.nn.Module):
                 m_ent_2 = torch.mean(r1[start_ent_2 + 1:end_ent_2], 0)
                 m_ent_1 = self.head_projector(m_ent_1) + self.tail_projector(m_ent_1)
                 m_ent_2 = self.head_projector(m_ent_2) + self.tail_projector(m_ent_2)
-                m_ent = torch.mul(m_ent_1, m_ent_2) + self.head_tail_projector(head_tail_context_vector)
+                m_ent = torch.mul(m_ent_1, m_ent_2)
+                m_ent = torch.mul(m_ent, self.head_tail_projector(head_tail_context_vector))
                 rel_representations.append(m_ent)
 
 
