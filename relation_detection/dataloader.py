@@ -5,7 +5,7 @@ import random
 
 #sys.path.append('../utils/')
 sys.path.append('../')
-from utils import read_json
+from utils.utils import read_json
 
 class collater_1():
     def __init__(self):

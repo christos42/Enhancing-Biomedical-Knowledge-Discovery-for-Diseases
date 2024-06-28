@@ -64,7 +64,8 @@ This subdirectory consist of the supervised approaches of the study, presenting 
    - use_distantly_supervised_data (store_value): boolean value to define if the distantly supervised data will be used
      (weakly supervised setup)
    - projection_dimension (int): the dimension of the projection layer (paper details: 768 and 1024 when PubMedBERT base 
-     and PubMedBERT large is used, respectively.)
+     and PubMedBERT large is used, respectively.), the default value is 0 and indicates that the projection dimension is 
+     equal to the embedding size.
 
 ---
 
