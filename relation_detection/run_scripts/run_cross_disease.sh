@@ -59,7 +59,7 @@ for model_id in "${model_ids[@]}"; do
             echo '##########################################'
             echo 'Aggregation: '${aggregation}
             echo '##########################################'
-            output_dir='results/cross_disease/'${evaluation_on}'/model_'${model_id}'/exp_'${exp_id}'/'${embed_mode}'/'${exp_setting}'/'${eval_metric}'/'${aggregation}'/'
+            output_dir='results_cross_disease/'${evaluation_on}'/model_'${model_id}'/exp_'${exp_id}'/'${embed_mode}'/'${exp_setting}'/'${eval_metric}'/'${aggregation}'/'
             seed=42
             echo 'Seed: '${seed}
             output_file='seed_'${seed}
