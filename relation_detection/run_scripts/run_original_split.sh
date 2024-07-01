@@ -1,7 +1,7 @@
 #!/bin/bash
 
 gpu_id=0
-exp_id=3
+exp_id=1
 dataset_path_train='../datasets/ReDReS_train.json'
 #dataset_path_train='../datasets/ReDAD_train.json'
 dataset_path_dev='../datasets/ReDReS_dev.json'
