@@ -2,14 +2,18 @@
 
 gpu_id=0
 exp_id=1
-dataset_path='../datasets/ReDReS.json'
-#dataset_path='../datasets/ReDAD.json'
+#dataset_path='../datasets/ReDReS.json'
+dataset_path='../datasets/ReDAD.json'
 model_id=1
 #model_id=2
 epoch=50
 batch_size=16
-embed_mode='PubMedBERT_base'
-#embed_mode='PubMedBERT_large'
+embed_mode='BiomedBERT_base'
+#embed_mode='BiomedBERT_large'
+#embed_mode='BioLinkBERT_base'
+#embed_mode='BioLinkBERT_large'
+#embed_mode='BioGPT_base'
+#embed_mode='BioGPT_large'
 #exp_setting='binary'
 exp_setting='multi_class'
 #eval_metric='micro'

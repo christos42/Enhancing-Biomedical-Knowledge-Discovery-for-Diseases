@@ -1,6 +1,6 @@
 import sys
 import torch
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, BioGptTokenizer, BioGptModel
 
 
 class LaMReDA(torch.nn.Module):
@@ -9,12 +9,12 @@ class LaMReDA(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
+        if args.embed_mode == 'BiomedBERT_base':
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
             # Add the special tokens
             self.tokenizer.add_tokens(['[ent]'])
             self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
+            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
             # Initialize randomly (using seed) the embeddings of the new tokens
             weights = self.model.embeddings.word_embeddings.weight.data
             torch.manual_seed(42)
@@ -32,7 +32,7 @@ class LaMReDA(torch.nn.Module):
             self.model.embeddings.word_embeddings = new_emb
 
             self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'PubMedBERT_large':
+        elif args.embed_mode == 'BiomedBERT_large':
             self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
             # Add the special tokens
             self.tokenizer.add_tokens(['[ent]'])
@@ -55,11 +55,106 @@ class LaMReDA(torch.nn.Module):
             self.model.embeddings.word_embeddings = new_emb
 
             self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
+        elif args.embed_mode == 'BioLinkBERT_base':
+            #self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
+            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
+            # Add the special tokens
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-base")
+            # Initialize randomly (using seed) the embeddings of the new tokens
+            weights = self.model.embeddings.word_embeddings.weight.data
+            torch.manual_seed(42)
+            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
+            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
+            # Idea: small initialization embedding
+            w1 = torch.empty(768)
+            w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
+            w1 = torch.unsqueeze(w1, 0)
+            w2 = torch.empty(768)
+            w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
+            w2 = torch.unsqueeze(w2, 0)
+            new_weights = torch.cat((weights, w1, w2), 0)
+            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
+            self.model.embeddings.word_embeddings = new_emb
+
+            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
+        elif args.embed_mode == 'BioLinkBERT_large':
+            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-large")
+            # Add the special tokens
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-large")
+            # Initialize randomly (using seed) the embeddings of the new tokens
+            weights = self.model.embeddings.word_embeddings.weight.data
+            torch.manual_seed(42)
+            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
+            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
+            # Idea: small initialization embedding
+            w1 = torch.empty(1024)
+            w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
+            w1 = torch.unsqueeze(w1, 0)
+            w2 = torch.empty(1024)
+            w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
+            w2 = torch.unsqueeze(w2, 0)
+            new_weights = torch.cat((weights, w1, w2), 0)
+            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
+            self.model.embeddings.word_embeddings = new_emb
+
+            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
+        elif args.embed_mode == 'BioGPT_base':
+            #self.tokenizer = BioGptTokenizer.from_pretrained("microsoft/biogpt")
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/biogpt")
+            # Add the special tokens
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+            #self.model = BioGptModel.from_pretrained("microsoft/biogpt")
+            self.model = AutoModel.from_pretrained("microsoft/biogpt")
+
+            # Initialize randomly (using seed) the embeddings of the new tokens
+            weights = self.model.embed_tokens.weight.data
+
+            torch.manual_seed(42)
+            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
+            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
+            # Idea: small initialization embedding
+            w1 = torch.empty(1024)
+            w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
+            w1 = torch.unsqueeze(w1, 0)
+            w2 = torch.empty(1024)
+            w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
+            w2 = torch.unsqueeze(w2, 0)
+            new_weights = torch.cat((weights, w1, w2), 0)
+            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
+            self.model.embed_tokens = new_emb
+
+            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
+        elif args.embed_mode == 'BioGPT_large':
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BioGPT-Large")
+            # Add the special tokens
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+            self.model = AutoModel.from_pretrained("microsoft/BioGPT-Large")
+            # Initialize randomly (using seed) the embeddings of the new tokens
+            weights = self.model.embed_tokens.weight.data
+            torch.manual_seed(42)
+            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
+            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
+            # Idea: small initialization embedding
+            w1 = torch.empty(1024)
+            w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
+            w1 = torch.unsqueeze(w1, 0)
+            w2 = torch.empty(1024)
+            w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
+            w2 = torch.unsqueeze(w2, 0)
+            new_weights = torch.cat((weights, w1, w2), 0)
+            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
+            self.model.embed_tokens = new_emb
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode == 'PubMedBERT_base':
+        if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
             classification_input_size = 768
-        elif args.embed_mode == 'PubMedBERT_large':
+        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
             classification_input_size = 1024
 
         if args.exp_setting == 'binary':
@@ -336,12 +431,12 @@ class LaMReDM(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
+        if args.embed_mode == 'BiomedBERT_base':
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
             # Add the special tokens
             self.tokenizer.add_tokens(['[ent]'])
             self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
+            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
             # Initialize randomly (using seed) the embeddings of the new tokens
             weights = self.model.embeddings.word_embeddings.weight.data
             torch.manual_seed(42)
@@ -357,7 +452,7 @@ class LaMReDM(torch.nn.Module):
             new_weights = torch.cat((weights, w1, w2), 0)
             new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
             self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'PubMedBERT_large':
+        elif args.embed_mode == 'BiomedBERT_large':
             self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
             # Add the special tokens
             self.tokenizer.add_tokens(['[ent]'])
@@ -378,11 +473,102 @@ class LaMReDM(torch.nn.Module):
             new_weights = torch.cat((weights, w1, w2), 0)
             new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
             self.model.embeddings.word_embeddings = new_emb
+        elif args.embed_mode == 'BioLinkBERT_base':
+            #self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
+            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
+            # Add the special tokens
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-base")
+            # Initialize randomly (using seed) the embeddings of the new tokens
+            weights = self.model.embeddings.word_embeddings.weight.data
+            torch.manual_seed(42)
+            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
+            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
+            # Idea: small initialization embedding
+            w1 = torch.empty(768)
+            w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
+            w1 = torch.unsqueeze(w1, 0)
+            w2 = torch.empty(768)
+            w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
+            w2 = torch.unsqueeze(w2, 0)
+            new_weights = torch.cat((weights, w1, w2), 0)
+            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
+            self.model.embeddings.word_embeddings = new_emb
+
+            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
+        elif args.embed_mode == 'BioLinkBERT_large':
+            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-large")
+            # Add the special tokens
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-large")
+            # Initialize randomly (using seed) the embeddings of the new tokens
+            weights = self.model.embeddings.word_embeddings.weight.data
+            torch.manual_seed(42)
+            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
+            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
+            # Idea: small initialization embedding
+            w1 = torch.empty(1024)
+            w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
+            w1 = torch.unsqueeze(w1, 0)
+            w2 = torch.empty(1024)
+            w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
+            w2 = torch.unsqueeze(w2, 0)
+            new_weights = torch.cat((weights, w1, w2), 0)
+            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
+            self.model.embeddings.word_embeddings = new_emb
+
+            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
+        elif args.embed_mode == 'BioGPT_base':
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/biogpt")
+            # Add the special tokens
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+            self.model = AutoModel.from_pretrained("microsoft/biogpt")
+            # Initialize randomly (using seed) the embeddings of the new tokens
+            weights = self.model.embed_tokens.weight.data
+            torch.manual_seed(42)
+            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
+            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
+            # Idea: small initialization embedding
+            w1 = torch.empty(1024)
+            w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
+            w1 = torch.unsqueeze(w1, 0)
+            w2 = torch.empty(1024)
+            w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
+            w2 = torch.unsqueeze(w2, 0)
+            new_weights = torch.cat((weights, w1, w2), 0)
+            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
+            self.model.embed_tokens.weight.data = new_emb
+
+            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
+        elif args.embed_mode == 'BioGPT_large':
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BioGPT-Large")
+            # Add the special tokens
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+            self.model = AutoModel.from_pretrained("microsoft/BioGPT-Large")
+            # Initialize randomly (using seed) the embeddings of the new tokens
+            weights = self.model.embed_tokens.weight.data
+            torch.manual_seed(42)
+            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
+            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
+            # Idea: small initialization embedding
+            w1 = torch.empty(1024)
+            w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
+            w1 = torch.unsqueeze(w1, 0)
+            w2 = torch.empty(1024)
+            w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
+            w2 = torch.unsqueeze(w2, 0)
+            new_weights = torch.cat((weights, w1, w2), 0)
+            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
+            self.model.embed_tokens = new_emb
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode == 'PubMedBERT_base':
+        if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
             classification_input_size = 768
-        elif args.embed_mode == 'PubMedBERT_large':
+        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
             classification_input_size = 1024
 
         if args.exp_setting == 'binary':
