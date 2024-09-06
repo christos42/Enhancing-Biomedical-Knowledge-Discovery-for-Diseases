@@ -23,12 +23,12 @@ class DataProcess(Dataset):
     def __init__(self, data, embed_mode):
         self.data = data
         self.embed_mode = embed_mode
-        if embed_mode == 'PubMedBERT_base':
+        if embed_mode == 'BiomedBERT_base':
             self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
             # Add the special tokens [ent] & [/ent] in the vocabulary
             self.tokenizer.add_tokens(['[ent]'])
             self.tokenizer.add_tokens(['[/ent]'])
-        elif embed_mode == 'PubMedBERT_large':
+        elif embed_mode == 'BiomedBERT_large':
             self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
             # Add the special tokens [ent] & [/ent] in the vocabulary
             self.tokenizer.add_tokens(['[ent]'])

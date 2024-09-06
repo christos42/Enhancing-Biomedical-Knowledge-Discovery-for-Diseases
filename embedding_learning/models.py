@@ -8,7 +8,7 @@ class LaMEL(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
+        if args.embed_mode == 'BiomedBERT_base':
             self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
             # Add the special tokens
             self.tokenizer.add_tokens(['[ent]'])
@@ -29,7 +29,7 @@ class LaMEL(torch.nn.Module):
             new_weights = torch.cat((weights, w1, w2), 0)
             new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
             self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'PubMedBERT_large':
+        elif args.embed_mode == 'BiomedBERT_large':
             self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
             # Add the special tokens
             self.tokenizer.add_tokens(['[ent]'])
@@ -147,12 +147,12 @@ class LaMEL(torch.nn.Module):
             self.model.embed_tokens = new_emb
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode in ['PubMedBERT_base', 'BioLinkBERT_base']:
+        if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
             if self.args.aggregation == 'start_end_start_end':
                 linear_input_size = 768 * 2
             else:
                 linear_input_size = 768
-        elif args.embed_mode in ['PubMedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
+        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
             if self.args.aggregation == 'start_end_start_end':
                 linear_input_size = 1024 * 2
             else:
@@ -242,7 +242,7 @@ class LaMEL_inter(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
+        if args.embed_mode == 'BiomedBERT_base':
             self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
             # Add the special tokens
             self.tokenizer.add_tokens(['[ent]'])
@@ -263,7 +263,7 @@ class LaMEL_inter(torch.nn.Module):
             new_weights = torch.cat((weights, w1, w2), 0)
             new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
             self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'PubMedBERT_large':
+        elif args.embed_mode == 'BiomedBERT_large':
             self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
             # Add the special tokens
             self.tokenizer.add_tokens(['[ent]'])
@@ -381,10 +381,10 @@ class LaMEL_inter(torch.nn.Module):
             self.model.embed_tokens = new_emb
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode in ['PubMedBERT_base', 'BioLinkBERT_base']:
+        if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
             inter_input_size = 768
             linear_input_size = 768
-        elif args.embed_mode in ['PubMedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
+        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
             inter_input_size = 1024
             linear_input_size = 1024
 
