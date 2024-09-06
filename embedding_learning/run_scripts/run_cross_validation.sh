@@ -10,8 +10,12 @@ model_ids=(
 )
 epoch=50
 batch_size=16
-embed_mode='PubMedBERT_base'
-#embed_mode='PubMedBERT_large'
+embed_mode='BiomedBERT_base'
+#embed_mode='BiomedBERT_large'
+#embed_mode='BioLinkBERT_base'
+#embed_mode='BioLinkBERT_large'
+#embed_mode='BioGPT_base'
+#embed_mode='BioGPT_large'
 margin=0.0
 threshold=0.5
 lr=0.00001

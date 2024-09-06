@@ -14,8 +14,12 @@ model_ids=(
 )
 epoch=50
 batch_size=16
-#embed_mode='PubMedBERT_base'
-embed_mode='PubMedBERT_large'
+embed_mode='BiomedBERT_base'
+#embed_mode='BiomedBERT_large'
+#embed_mode='BioLinkBERT_base'
+#embed_mode='BioLinkBERT_large'
+#embed_mode='BioGPT_base'
+#embed_mode='BioGPT_large'
 margin=0.0
 threshold=0.5
 lr=0.00001
@@ -35,8 +39,8 @@ for model_id in "${model_ids[@]}"; do
         echo '##########################################'
         echo 'Aggregation: '${aggregation}
         echo '##########################################'
-        #output_dir='results_original_split/rett_syndrome/model_'${model_id}'/exp_'${exp_id}'/'${embed_mode}'/'${exp_setting}'/'${eval_metric}'/'${aggregation}'/'
-        output_dir='results_original_split/alzheimer_s_disease/model_'${model_id}'/exp_'${exp_id}'/'${embed_mode}'/'${exp_setting}'/'${eval_metric}'/'${aggregation}'/'
+        output_dir='results_original_split/rett_syndrome/model_'${model_id}'/exp_'${exp_id}'/'${embed_mode}'/'${exp_setting}'/'${eval_metric}'/'${aggregation}'/'
+        #output_dir='results_original_split/alzheimer_s_disease/model_'${model_id}'/exp_'${exp_id}'/'${embed_mode}'/'${exp_setting}'/'${eval_metric}'/'${aggregation}'/'
         seed=42
         echo 'Seed: '${seed}
         output_file='seed_'${seed}
