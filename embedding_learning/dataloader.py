@@ -33,13 +33,23 @@ class DataProcess(Dataset):
             # Add the special tokens [ent] & [/ent] in the vocabulary
             self.tokenizer.add_tokens(['[ent]'])
             self.tokenizer.add_tokens(['[/ent]'])
-        elif embed_mode == 'Aspire_spec':
-            self.tokenizer = AutoTokenizer.from_pretrained("allenai/aspire-biencoder-biomed-spec")
+        elif embed_mode == 'BioLinkBERT_base':
+            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
             # Add the special tokens [ent] & [/ent] in the vocabulary
             self.tokenizer.add_tokens(['[ent]'])
             self.tokenizer.add_tokens(['[/ent]'])
-        elif embed_mode == 'Aspire_scib':
-            self.tokenizer = AutoTokenizer.from_pretrained("allenai/aspire-biencoder-biomed-scib")
+        elif embed_mode == 'BioLinkBERT_large':
+            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-large")
+            # Add the special tokens [ent] & [/ent] in the vocabulary
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+        elif embed_mode == 'BioGPT_base':
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/biogpt")
+            # Add the special tokens [ent] & [/ent] in the vocabulary
+            self.tokenizer.add_tokens(['[ent]'])
+            self.tokenizer.add_tokens(['[/ent]'])
+        elif embed_mode == 'BioGPT_large':
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BioGPT-Large")
             # Add the special tokens [ent] & [/ent] in the vocabulary
             self.tokenizer.add_tokens(['[ent]'])
             self.tokenizer.add_tokens(['[/ent]'])

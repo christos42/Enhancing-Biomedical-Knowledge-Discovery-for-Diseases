@@ -118,8 +118,10 @@ if __name__ == '__main__':
                         help="number of samples in one testing batch")
 
     parser.add_argument("--embed_mode", type=str, required=True,
-                        choices=["PubMedBERT_base", "PubMedBERT_large"],
-                        help="PubMedBERT_base, PubMedBERT_large")
+                        choices=["PubMedBERT_base", "PubMedBERT_large",
+                                 "BioLinkBERT_base", "BioLink_large",
+                                 "BioGPT_base", "BioGPT_large"],
+                        help="PubMedBERT_base, PubMedBERT_large, BioLinkBERT_base, BioLink_large, BioGPT_base, BioGPT_large")
 
     parser.add_argument("--lr", default=None, type=float,
                         help="initial learning rate")
