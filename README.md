@@ -1,8 +1,12 @@
 # 
 
-# Knowledge Extraction for incurable diseases using pubmed: A step towards never-ending learning
-Official code repository of "Knowledge Extraction for incurable diseases using pubmed: A step towards never-ending learning" paper.
-For a detailed description of the framework, see our paper: 
+# Enhancing Biomedical Knowledge Discovery for Diseases
+Official code repository of "Enhancing Biomedical Knowledge Discovery for Diseases: An Open-Source Framework Applied on Rett Syndrome and Alzheimer’s Disease" publication.
+For a detailed description of the framework, see our paper:
+
+Theodoropoulos, Christos, et al. "Enhancing Biomedical Knowledge Discovery for Diseases: An Open-Source Framework Applied on Rett Syndrome and Alzheimer's Disease." arXiv preprint arXiv:2407.13492 (2024). 
+
+Accepted in IEEE Access journal - DOI: 10.1109/ACCESS.2024.3509714
 
 ---
 
@@ -112,7 +116,13 @@ Please cite our work when using this software.
 
 BibTex:
 <pre>
-
+@article{theodoropoulos2024enhancing,
+  title={Enhancing Biomedical Knowledge Discovery for Diseases: An Open-Source Framework Applied on Rett Syndrome and Alzheimer's Disease},
+  author={Theodoropoulos, Christos and Coman, Andrei Catalin and Henderson, James and Moens, Marie-Francine},
+  journal={arXiv preprint arXiv:2407.13492},
+  year={2024},
+  doi={https://doi.org/10.48550/arXiv.2407.13492}
+}
 </pre>
 
 
