@@ -38,5 +38,5 @@ We describe the process of sentence sampling and annotation. In this implementat
   - annotator (string): the name of the annotator/expert
   - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
 
-### Notes
+#### Datasets
 - [NOTE 1] : The ReDReS and ReDAD datasets are available [here](https://drive.google.com/file/d/1PRVORwFszsPfCylzYd0XY1JKZLRgLCtV/view?usp=sharing).
