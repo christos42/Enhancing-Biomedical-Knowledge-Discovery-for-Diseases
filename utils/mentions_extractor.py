@@ -65,34 +65,32 @@ class MentionsExtractorSciSpacy:
             return nlp
 
     def extract_entities_pos_tags(self, data):
-        info = {}
-        for id_ in data:
-            info[id_] = {}
-            for i, s in enumerate(data[id_]['abstract_tokenized']):
-                doc = self.nlp(s)
+        info = {id_: {} for id_ in data}
+        # Stream all sentences through nlp.pipe in batches (same documents as calling self.nlp per sentence)
+        sentences = ((s, (id_, i)) for id_ in data for i, s in enumerate(data[id_]['abstract_tokenized']))
+        for doc, (id_, i) in self.nlp.pipe(sentences, as_tuples=True):
+            tokenized_sentence = []
+            for token in doc:
+                tokenized_sentence.append(token.text)
 
-                tokenized_sentence = []
-                for token in doc:
-                    tokenized_sentence.append(token.text)
+            ent_l = []
+            linked_l = []
+            for ent in doc.ents:
+                ent_l.append((ent.text, ent.label_, ent.start, ent.end, self.type))
+                # Entity linking
+                linked_info = self.get_expanded_entity_linking(ent)
+                linked_l.append(linked_info)
 
-                ent_l = []
-                linked_l = []
-                for ent in doc.ents:
-                    ent_l.append((ent.text, ent.label_, ent.start, ent.end, self.type))
-                    # Entity linking
-                    linked_info = self.get_expanded_entity_linking(ent)
-                    linked_l.append(linked_info)
+            pos = []
+            for token in doc:
+                if token.pos_ in ['NOUN', 'PROPN']:
+                    pos.append((token.text, token.pos_))
 
-                pos = []
-                for token in doc:
-                    if token.pos_ in ['NOUN', 'PROPN']:
-                        pos.append((token.text, token.pos_))
-
-                #ent_l_unique, linked_l_unique = self.find_unique_entities(ent_l, linked_l)
-                info[id_][data[id_]['sentence_ids'][i]] = {'entities': ent_l,
-                                                           'linked_entities': linked_l,
-                                                           'POS': list(set(pos)),
-                                                           'tokenized_sentence': {self.type: tokenized_sentence}}
+            #ent_l_unique, linked_l_unique = self.find_unique_entities(ent_l, linked_l)
+            info[id_][data[id_]['sentence_ids'][i]] = {'entities': ent_l,
+                                                       'linked_entities': linked_l,
+                                                       'POS': list(set(pos)),
+                                                       'tokenized_sentence': {self.type: tokenized_sentence}}
 
         return info
 

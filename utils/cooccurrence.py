@@ -93,38 +93,35 @@ def get_cooccurrence_narrow_dict(data):
 
 
 def get_unique_cuis_metamap(data):
-    unique_cuis = []
+    unique_cuis = {}  # used as an insertion-ordered set: constant-time membership, unlike a list
     for k1 in data:
         for k2 in data[k1].keys():
             ent = data[k1][k2]
             cuis = ent['cui'].split('||')
             for cui in cuis:
-                if cui not in unique_cuis:
-                    unique_cuis.append(cui)
+                unique_cuis[cui] = None
 
-    return unique_cuis
+    return list(unique_cuis)
 
 
 def get_unique_cuis(data):
-    unique_cuis = []
+    unique_cuis = {}  # used as an insertion-ordered set: constant-time membership, unlike a list
     for k1 in data:
         for k2 in data[k1]:
             for ent in data[k1][k2]['sampled_linked_entities']:
                 for cui in ent['cui']:
-                    if cui not in unique_cuis:
-                        unique_cuis.append(cui)
+                    unique_cuis[cui] = None
 
-    return unique_cuis
+    return list(unique_cuis)
 
 
 def get_unique_cuis_narrow(data):
-    unique_cuis = []
+    unique_cuis = {}  # used as an insertion-ordered set: constant-time membership, unlike a list
     for k1 in data:
         for k2 in data[k1]:
             for ent in data[k1][k2]['sampled_linked_entities']:
                 if len(ent["cui"]) == 0:
                     continue
-                if ent["cui"][0] not in unique_cuis:
-                    unique_cuis.append(ent["cui"][0])
+                unique_cuis[ent["cui"][0]] = None
 
-    return unique_cuis
+    return list(unique_cuis)

@@ -39,9 +39,10 @@ def create_new_folder(path):
         os.makedirs(path)
 
 def no_intersection_lists(list1, list2):
+    set2 = set(list2)  # constant-time membership; a list made this quadratic for large PMID lists
     no_inter_list = []
     for l in list1:
-        if l not in list2:
+        if l not in set2:
             no_inter_list.append(l)
 
     return no_inter_list
