@@ -36,7 +36,8 @@ This subdirectory consist of the supervised approaches of the study, presenting 
    - epoch (int): the number of training epochs
    - batch_size (int): the batch size for the training session
    - eval_batch_size (int): the batch size for the evaluation session
-   - embed_mode (string): the backbone Language Model, "PubMedBERT_base" and "PubMedBERT_large" are supported.
+   - embed_mode (string): the backbone Language Model, "BiomedBERT_base", "BiomedBERT_large", "BioLinkBERT_base", 
+     "BioLinkBERT_large", "BioGPT_base" and "BioGPT_large" are supported.
    - exp_setting (string): the experimental setting for the task (correlation detection): binary or multi_class
    - eval_metric (string): micro or macro evaluation (f1-score)
    - lr (float): the learning rate

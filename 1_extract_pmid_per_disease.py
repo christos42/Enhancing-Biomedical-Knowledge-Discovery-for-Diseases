@@ -34,6 +34,6 @@ if __name__ == '__main__':
         print('Number of PMIDs: {}'.format(len(s['IdList'])))
     else:
         ids, _ = p.retrieve_all_ids()
-        save_json(ids, new_file_name, args.output_path + current_date + '/')
+        save_json(ids, file_name, args.output_path + current_date + '/')
         print('Number of PMIDs: {}'.format(len(ids)))
     print('#############################')

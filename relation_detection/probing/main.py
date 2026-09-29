@@ -120,11 +120,17 @@ if __name__ == '__main__':
     parser.add_argument("--dataset_path", type=str, required=True,
                         help="the path to the dataset")
 
+    parser.add_argument("--dataset_path_eval", type=str,
+                        help="the path to the dataset for evaluation")
+
     parser.add_argument("--do_train", action="store_true",
                         help="training mode")
 
     parser.add_argument("--do_eval", action="store_true",
                         help="whether or not to evaluate the model")
+
+    parser.add_argument("--do_cross_disease_training", action="store_true",
+                        help="whether cross-disease training/evaluation is applied")
 
     parser.add_argument("--model_id", type=int, choices=[1, 2, 3, 4, 5],
                         help="the model id: 1 (LMCE_proj), 2 (LMCE_mul_proj)")
@@ -139,7 +145,7 @@ if __name__ == '__main__':
                         help="number of samples in one testing batch")
 
     parser.add_argument("--embed_mode", type=str, required=True,
-                        choices=["PubMedBERT_base, PubMedBERT_large"],
+                        choices=["PubMedBERT_base", "PubMedBERT_large"],
                         help="PubMedBERT_base, PubMedBERT_large")
 
     parser.add_argument("--exp_setting", type=str, required=True, choices=["binary", "multi_class"],

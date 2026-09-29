@@ -136,10 +136,10 @@ class LaMEL(torch.nn.Module):
             # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
             # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
             # Idea: small initialization embedding
-            w1 = torch.empty(1024)
+            w1 = torch.empty(1600)
             w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
             w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
+            w2 = torch.empty(1600)
             w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
             w2 = torch.unsqueeze(w2, 0)
             new_weights = torch.cat((weights, w1, w2), 0)
@@ -152,11 +152,16 @@ class LaMEL(torch.nn.Module):
                 linear_input_size = 768 * 2
             else:
                 linear_input_size = 768
-        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
+        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base']:
             if self.args.aggregation == 'start_end_start_end':
                 linear_input_size = 1024 * 2
             else:
                 linear_input_size = 1024
+        elif args.embed_mode == 'BioGPT_large':
+            if self.args.aggregation == 'start_end_start_end':
+                linear_input_size = 1600 * 2
+            else:
+                linear_input_size = 1600
 
         self.head_projector = torch.nn.Linear(linear_input_size, linear_input_size)
         self.tail_projector= torch.nn.Linear(linear_input_size, linear_input_size)
@@ -370,10 +375,10 @@ class LaMEL_inter(torch.nn.Module):
             # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
             # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
             # Idea: small initialization embedding
-            w1 = torch.empty(1024)
+            w1 = torch.empty(1600)
             w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
             w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
+            w2 = torch.empty(1600)
             w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
             w2 = torch.unsqueeze(w2, 0)
             new_weights = torch.cat((weights, w1, w2), 0)
@@ -384,9 +389,12 @@ class LaMEL_inter(torch.nn.Module):
         if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
             inter_input_size = 768
             linear_input_size = 768
-        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
+        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base']:
             inter_input_size = 1024
             linear_input_size = 1024
+        elif args.embed_mode == 'BioGPT_large':
+            inter_input_size = 1600
+            linear_input_size = 1600
 
         self.head_projector = torch.nn.Linear(linear_input_size, linear_input_size)
         self.tail_projector= torch.nn.Linear(linear_input_size, linear_input_size)

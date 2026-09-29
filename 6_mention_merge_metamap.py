@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
 import os
-from utils.utils import find_csv_files, save_json, read_json
+from utils.utils import find_csv_files, save_json, read_json, create_new_folder
 from utils.metamap_concepts_utils import *
 
 
@@ -199,4 +199,6 @@ if __name__ == '__main__':
                 pass
 
 
-    save_json(all_entities, args.disease + '.json', args.input_path + args.date + '/metamap/merged_entities/')
+    output_path = args.input_path + args.date + '/metamap/merged_entities/'
+    create_new_folder(output_path)
+    save_json(all_entities, args.disease + '.json', output_path)

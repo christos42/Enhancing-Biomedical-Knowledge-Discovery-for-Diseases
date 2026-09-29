@@ -10,6 +10,9 @@ def create_dataset(annotations, data_entities, abstracts):
     dataset = {}
     count_rec_per_sent = {}
     for k1 in annotations:
+        # Skip the pair that was still being annotated when the file was saved
+        if 'relation' not in annotations[k1] or 'useful text' not in annotations[k1]:
+            continue
         # Find the keys/indexes for mapping to data_entities
         k2 = '_'.join(k1.split('_')[:2])
         entity_1_index = annotations[k1]['entity_index_pair'][0]

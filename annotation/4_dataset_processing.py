@@ -165,6 +165,9 @@ if __name__ == '__main__':
 	# Merge the datasets
 	dataset_total = {}
 	for f in dataset_files:
+	    # Skip the outputs of a previous run, stored in the same folder
+	    if f.split('/')[-1] in ['dataset_total.json', 'essential_dataset_total.json']:
+	        continue
 	    dataset = read_json(f)
 	    dataset_total.update(dataset)
 

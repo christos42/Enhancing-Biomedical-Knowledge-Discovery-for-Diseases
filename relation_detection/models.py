@@ -141,10 +141,10 @@ class LaMReDA(torch.nn.Module):
             # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
             # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
             # Idea: small initialization embedding
-            w1 = torch.empty(1024)
+            w1 = torch.empty(1600)
             w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
             w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
+            w2 = torch.empty(1600)
             w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
             w2 = torch.unsqueeze(w2, 0)
             new_weights = torch.cat((weights, w1, w2), 0)
@@ -154,8 +154,10 @@ class LaMReDA(torch.nn.Module):
         self.dropout = torch.nn.Dropout(args.dropout)
         if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
             classification_input_size = 768
-        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
+        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base']:
             classification_input_size = 1024
+        elif args.embed_mode == 'BioGPT_large':
+            classification_input_size = 1600
 
         if args.exp_setting == 'binary':
             classification_output_size = 1
@@ -540,7 +542,7 @@ class LaMReDM(torch.nn.Module):
             w2 = torch.unsqueeze(w2, 0)
             new_weights = torch.cat((weights, w1, w2), 0)
             new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens.weight.data = new_emb
+            self.model.embed_tokens = new_emb
 
             self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
         elif args.embed_mode == 'BioGPT_large':
@@ -555,10 +557,10 @@ class LaMReDM(torch.nn.Module):
             # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
             # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
             # Idea: small initialization embedding
-            w1 = torch.empty(1024)
+            w1 = torch.empty(1600)
             w1 = torch.nn.init.uniform_(w1, a=-1e-4, b=1e-4)
             w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
+            w2 = torch.empty(1600)
             w2 = torch.nn.init.uniform_(w2, a=-1e-4, b=1e-4)
             w2 = torch.unsqueeze(w2, 0)
             new_weights = torch.cat((weights, w1, w2), 0)
@@ -568,8 +570,10 @@ class LaMReDM(torch.nn.Module):
         self.dropout = torch.nn.Dropout(args.dropout)
         if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
             classification_input_size = 768
-        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base', 'BioGPT_large']:
+        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base']:
             classification_input_size = 1024
+        elif args.embed_mode == 'BioGPT_large':
+            classification_input_size = 1600
 
         if args.exp_setting == 'binary':
             classification_output_size = 1

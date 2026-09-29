@@ -158,9 +158,9 @@ if __name__ == '__main__':
 
     parser.add_argument("--embed_mode", default=None, type=str, required=True,
                         choices=["BiomedBERT_base", "BiomedBERT_large",
-                                 "BioLinkBERT_base", "BioLink_large",
+                                 "BioLinkBERT_base", "BioLinkBERT_large",
                                  "BioGPT_base", "BioGPT_large"],
-                        help="BiomedBERT_base, BiomedBERT_large, BioLinkBERT_base, BioLink_large, BioGPT_base, BioGPT_large")
+                        help="BiomedBERT_base, BiomedBERT_large, BioLinkBERT_base, BioLinkBERT_large, BioGPT_base, BioGPT_large")
 
     parser.add_argument("--exp_setting", default="binary", type=str, required=True,
                         choices=["binary", "multi_class"],

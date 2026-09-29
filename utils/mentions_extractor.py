@@ -20,7 +20,7 @@ class MentionsExtractorSciSpacy:
         elif self.type == 'bionlp13cg':
             nlp = spacy.load("en_ner_bionlp13cg_md")
         else:
-            flag == 1
+            flag = 1
             print('Unknown type given. Supported pipelines: craft, bc5cdr, jnlpba, bionlp13cg')
 
         if flag == 0:

@@ -24,12 +24,14 @@ parser.add_argument("--annotator", type=str, required=True,
 args = parser.parse_args()
 
 
-# Getting the current date and time
-dt = datetime.now()
+# Getting the current date and time (once per session: Streamlit reruns this script on every interaction)
+if "ts" not in state:
+  dt = datetime.now()
 
-# getting the timestamp
-ts = str(datetime.timestamp(dt))
-ts = ts.replace('.', '_')
+  # getting the timestamp
+  ts = str(datetime.timestamp(dt))
+  state.ts = ts.replace('.', '_')
+ts = state.ts
 
 markdown_sentences = read_json('markdown_sentences/' + args.disease_name + '/markdown_sentences_' + str(args.bucket_id) + '.json') 
 

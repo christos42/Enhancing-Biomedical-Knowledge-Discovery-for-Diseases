@@ -28,6 +28,8 @@ if __name__ == '__main__':
 
     for f in files:
         file_name = f.split('/')[-1]
+        if 'checked_pmids' in file_name:
+            continue
         data = read_json(f)
         info_craft = scispacy_craft.extract_entities_pos_tags(data)
         info_bc5cdr = scispacy_bc5cdr.extract_entities_pos_tags(data)

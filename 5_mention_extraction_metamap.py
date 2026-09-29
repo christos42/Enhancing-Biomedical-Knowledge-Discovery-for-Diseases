@@ -82,6 +82,8 @@ if __name__ == '__main__':
 
     for f in files:
         file_name = f.split('/')[-1]
+        if 'checked_pmids' in file_name:
+            continue
         e2e_output_path = output_path + file_name.split('.')[0] + '/'
         create_new_folder(e2e_output_path)
         data = read_json(f)

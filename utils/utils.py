@@ -21,6 +21,16 @@ def find_json_files(path):
 
     return f_path
 
+
+def find_csv_files(path):
+    f_path = []
+    for root, dirs, files in os.walk(path, topdown=False):
+        for name in files:
+            if name.endswith('.csv'):
+                f_path.append(os.path.join(root, name))
+
+    return f_path
+
 def create_new_folder(path):
     isExist = os.path.exists(path)
     if not isExist:

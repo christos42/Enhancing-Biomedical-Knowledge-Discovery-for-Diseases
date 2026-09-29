@@ -119,9 +119,9 @@ if __name__ == '__main__':
 
     parser.add_argument("--embed_mode", type=str, required=True,
                         choices=["BiomedBERT_base", "BiomedBERT_large",
-                                 "BioLinkBERT_base", "BioLink_large",
+                                 "BioLinkBERT_base", "BioLinkBERT_large",
                                  "BioGPT_base", "BioGPT_large"],
-                        help="BiomedBERT_base, BiomedBERT_large, BioLinkBERT_base, BioLink_large, BioGPT_base, BioGPT_large")
+                        help="BiomedBERT_base, BiomedBERT_large, BioLinkBERT_base, BioLinkBERT_large, BioGPT_base, BioGPT_large")
 
     parser.add_argument("--lr", default=None, type=float,
                         help="initial learning rate")

@@ -172,7 +172,9 @@ if __name__ == '__main__':
                 del inversed_probabilities_to_be_sampled[index]
             
             #buckets.append(random.shuffle(list(b1) + list(b2)))
-            save_json(random.shuffle(list(b1) + list(b2)), 'bucket_' + str(counter) + '.json', folder)
+            bucket = list(b1) + list(b2)
+            random.shuffle(bucket)
+            save_json(bucket, 'bucket_' + str(counter) + '.json', folder)
             counter += 1
 
         try:
@@ -198,7 +200,8 @@ if __name__ == '__main__':
         all_sampled_ids = []
 
         sampled_ids = []
-        while(len(concept_pairs_to_be_sampled) >= 10):    
+        step = 50
+        while(len(concept_pairs_to_be_sampled) >= args.n_conc):
             b1 = random_sampling(concept_pairs_to_be_sampled, args.n_conc)
             for k in b1:
                 for id_ in cooc[k]['sentence_ids']:
@@ -207,10 +210,11 @@ if __name__ == '__main__':
                         sampled_ids.append(id_)
                 index = concept_pairs_to_be_sampled.index(k)
                 del concept_pairs_to_be_sampled[index]
-            
-            step = 50
+
             if len(sampled_ids) >= step:
-                buckets_2.append(random.shuffle(sampled_ids[:step]))
+                bucket = sampled_ids[:step]
+                random.shuffle(bucket)
+                buckets_2.append(bucket)
                 sampled_ids = sampled_ids[step:]
 
         for k in concept_pairs_to_be_sampled:
@@ -220,10 +224,9 @@ if __name__ == '__main__':
                     sampled_ids.append(id_)
 
         for i in range(0, len(sampled_ids), step):
-            try:
-                buckets_2.append(random.shuffle(sampled_ids[:step]))
-            except:
-                buckets_2.append(random.shuffle(sampled_ids[step:]))
+            bucket = sampled_ids[i:i + step]
+            random.shuffle(bucket)
+            buckets_2.append(bucket)
         folder = 'strategy_2/' + args.disease_name + '/'
         if not(os.path.isdir(folder)):
             os.makedirs(folder)
