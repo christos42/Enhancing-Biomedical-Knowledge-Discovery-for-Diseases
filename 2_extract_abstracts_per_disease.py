@@ -36,7 +36,7 @@ if __name__ == '__main__':
         try:
             abstracts_ready = read_json(args.output_path + args.date + '/' + file_name)
             pmids_checked = read_json(args.output_path + args.date + '/' + file_name.split('.')[0] + '_checked_pmids.json')
-        except:
+        except Exception:
             abstracts_ready = {}
             pmids_checked = []
         pmid_all = read_json(f)
@@ -51,11 +51,14 @@ if __name__ == '__main__':
                     abstracts = p.retrieve_abstracts(pmid[i:i + 5000])
                     pmids_checked.extend(pmid[i:i + 5000])
                 abstracts_ready.update(abstracts)
-        except:
+        except (Exception, KeyboardInterrupt) as e:
             flag = 1
             save_json(abstracts_ready, file_name, args.output_path + args.date + '/')
             save_json(pmids_checked, file_name.split('.')[0] + '_checked_pmids.json', args.output_path + args.date + '/')
             not_completed.append(file_name)
+            if isinstance(e, KeyboardInterrupt):
+                # Stop once the progress is saved; the next run resumes from it
+                raise
         if flag == 0:
             save_json(abstracts_ready, file_name, args.output_path + args.date + '/')
             save_json(pmids_checked, file_name.split('.')[0] + '_checked_pmids.json', args.output_path + args.date + '/')

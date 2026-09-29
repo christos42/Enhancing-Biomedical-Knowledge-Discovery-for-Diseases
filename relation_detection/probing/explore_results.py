@@ -54,7 +54,7 @@ class Search:
                     res_dict[f_sub[1]][f_sub[2]][f_sub[3]][f_sub[4]][f_sub[5]][f_sub[6]][f_sub[7]]['rec'].append(float(rec))
                     res_dict[f_sub[1]][f_sub[2]][f_sub[3]][f_sub[4]][f_sub[5]][f_sub[6]][f_sub[7]]['f1'].append(float(f1))
                     res_dict[f_sub[1]][f_sub[2]][f_sub[3]][f_sub[4]][f_sub[5]][f_sub[6]][f_sub[7]]['f_0_5'].append(float(f_0_5))
-                except:
+                except Exception:
                     pass
 
         return res_dict
@@ -76,7 +76,7 @@ class Search:
                                             np.mean(self.res_dict[k1][k2][k3][k4][k5][k6][k7]['f1']), 4)
                                         self.res_dict[k1][k2][k3][k4][k5][k6][k7]['avg_f_0_5'] = round(
                                             np.mean(self.res_dict[k1][k2][k3][k4][k5][k6][k7]['f_0_5']), 4)
-                                    except:
+                                    except Exception:
                                         pass
 
 

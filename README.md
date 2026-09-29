@@ -10,7 +10,9 @@ Theodoropoulos, C., Catalin Coman, A., Henderson, J., and Moens, M.-F. Enhancing
 
 ## Setup
 ### Requirements
- - Python 3.5+
+Install them with ```pip install -r requirements.txt```. The experiments in the subdirectories have their own requirements files
+and pin a different scikit-learn version, so use a separate environment for them.
+ - Python 3.8+
  - BioPython (tested with version 1.78)
  - nltk (tested with version 3.7) 
  - scispacy (tested with version 0.5.1)

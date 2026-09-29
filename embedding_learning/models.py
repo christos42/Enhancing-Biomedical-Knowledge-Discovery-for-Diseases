@@ -1,6 +1,9 @@
+import os
 import sys
 import torch
-from transformers import AutoTokenizer, AutoModel
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from utils.training_utils import load_backbone_with_markers, inter_representation
 
 class LaMEL(torch.nn.Module):
     def __init__(self, args, device):
@@ -8,172 +11,13 @@ class LaMEL(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'BiomedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(768)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(768)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'BiomedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'BioLinkBERT_base':
-            #self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(768)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(768)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioLinkBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioGPT_base':
-            #self.tokenizer = BioGptTokenizer.from_pretrained("microsoft/biogpt")
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/biogpt")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            #self.model = BioGptModel.from_pretrained("microsoft/biogpt")
-            self.model = AutoModel.from_pretrained("microsoft/biogpt")
-
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embed_tokens.weight.data
-
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioGPT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BioGPT-Large")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BioGPT-Large")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embed_tokens.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1600)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1600)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens = new_emb
+        self.tokenizer, self.model, hidden_size = load_backbone_with_markers(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
-            if self.args.aggregation == 'start_end_start_end':
-                linear_input_size = 768 * 2
-            else:
-                linear_input_size = 768
-        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base']:
-            if self.args.aggregation == 'start_end_start_end':
-                linear_input_size = 1024 * 2
-            else:
-                linear_input_size = 1024
-        elif args.embed_mode == 'BioGPT_large':
-            if self.args.aggregation == 'start_end_start_end':
-                linear_input_size = 1600 * 2
-            else:
-                linear_input_size = 1600
+        if self.args.aggregation == 'start_end_start_end':
+            linear_input_size = hidden_size * 2
+        else:
+            linear_input_size = hidden_size
 
         self.head_projector = torch.nn.Linear(linear_input_size, linear_input_size)
         self.tail_projector= torch.nn.Linear(linear_input_size, linear_input_size)
@@ -259,166 +103,11 @@ class LaMEL_inter(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'BiomedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(768)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(768)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'BiomedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'BioLinkBERT_base':
-            #self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(768)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(768)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioLinkBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioGPT_base':
-            #self.tokenizer = BioGptTokenizer.from_pretrained("microsoft/biogpt")
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/biogpt")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            #self.model = BioGptModel.from_pretrained("microsoft/biogpt")
-            self.model = AutoModel.from_pretrained("microsoft/biogpt")
-
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embed_tokens.weight.data
-
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioGPT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BioGPT-Large")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BioGPT-Large")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embed_tokens.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1600)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1600)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens = new_emb
+        self.tokenizer, self.model, hidden_size = load_backbone_with_markers(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
-            inter_input_size = 768
-            linear_input_size = 768
-        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base']:
-            inter_input_size = 1024
-            linear_input_size = 1024
-        elif args.embed_mode == 'BioGPT_large':
-            inter_input_size = 1600
-            linear_input_size = 1600
+        inter_input_size = hidden_size
+        linear_input_size = hidden_size
 
         self.head_projector = torch.nn.Linear(linear_input_size, linear_input_size)
         self.tail_projector= torch.nn.Linear(linear_input_size, linear_input_size)
@@ -438,16 +127,7 @@ class LaMEL_inter(torch.nn.Module):
             end_ent_1 = entities_range[i][0][1]
             start_ent_2 = entities_range[i][1][0]
             end_ent_2 = entities_range[i][1][1]
-            if end_ent_1 + 1 == start_ent_2:
-                inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-            elif end_ent_2 + 1 == start_ent_1:
-                inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-            elif end_ent_1 < start_ent_2:
-                inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-            elif end_ent_2 < start_ent_1:
-                inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-            else:
-                inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
+            inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
             if self.args.aggregation == 'ent_context_ent_context':
                 #ent_rep_1 = torch.unsqueeze(torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
                 ent_rep_1 = torch.mean(r1[start_ent_1 + 1:end_ent_1], 0)

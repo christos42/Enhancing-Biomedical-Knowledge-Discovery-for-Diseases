@@ -64,7 +64,7 @@ class PubMed:
                 #if type(title_) == Entrez.Parser.StringElement:
                 #    pass
                     #title = self.reform_abstract(title_)
-            except:
+            except Exception:
                 title = ''
             try:
                 abstract = doc['MedlineCitation']['Article']['Abstract']['AbstractText']
@@ -80,7 +80,7 @@ class PubMed:
                     abstracts[pmid] = {'date': date,
                                        'title': title,
                                        'abstract': abstract}
-            except:
+            except Exception:
                 pass
                 # print(pmid)
         for doc in d['PubmedBookArticle']:
@@ -92,7 +92,7 @@ class PubMed:
                 #if type(title_) == Entrez.Parser.StringElement:
                 #    pass
                     #title = self.reform_abstract(title_)
-            except:
+            except Exception:
                 title = ''
             try:
                 abstract = doc['BookDocument']['Abstract']['AbstractText']
@@ -108,7 +108,7 @@ class PubMed:
                     abstracts[pmid] = {'date': date,
                                        'title': title,
                                        'abstract': abstract}
-            except:
+            except Exception:
                 pass
                 # print(pmid)
 
@@ -155,7 +155,7 @@ class PubMed:
                 date, _ = self.get_pub_date(doc, 'article')
                 try:
                     title = doc['MedlineCitation']['Article']['ArticleTitle']
-                except:
+                except Exception:
                     title = ''
                 try:
                     abstract = doc['MedlineCitation']['Article']['Abstract']['AbstractText']
@@ -170,7 +170,7 @@ class PubMed:
                         abstracts[pmid] = {'date': date,
                                            'title': title,
                                            'abstract': abstract}
-                except:
+                except Exception:
                     pass
                     # print(pmid)
             for doc in d['PubmedBookArticle']:
@@ -178,7 +178,7 @@ class PubMed:
                 date, _ = self.get_pub_date(doc, 'book_article')
                 try:
                     title = doc['BookDocument']['ArticleTitle']
-                except:
+                except Exception:
                     title = ''
                 try:
                     abstract = doc['BookDocument']['Abstract']['AbstractText']
@@ -192,7 +192,7 @@ class PubMed:
                         abstracts[pmid] = {'date': date,
                                            'title': title,
                                            'abstract': abstract}
-                except:
+                except Exception:
                     pass
                     # print(pmid)
 
@@ -219,7 +219,7 @@ class PubMed:
                 # date = year + '/' + month + '/' + day
                 date = year + '/' + month
                 found = 1
-            except:
+            except Exception:
                 date = ''
                 found = 0
         elif doc_type == 'book_article':
@@ -228,7 +228,7 @@ class PubMed:
                 month = doc['BookDocument']['Book']['PubDate']['Month']
                 date = year + '/' + month
                 found = 1
-            except:
+            except Exception:
                 date = ''
                 found = 0
 
@@ -242,7 +242,7 @@ class PubMed:
             try:
                 cast = int(id_)
                 c_ids.append(id_)
-            except:
+            except Exception:
                 print(id_)
                 pass
 
@@ -302,7 +302,7 @@ class PubMedDivide:
             date, _ = self.get_pub_date(doc, 'article')
             try:
                 title = doc['MedlineCitation']['Article']['ArticleTitle']
-            except:
+            except Exception:
                 title = ''
             try:
                 abstract = doc['MedlineCitation']['Article']['Abstract']['AbstractText']
@@ -316,7 +316,7 @@ class PubMedDivide:
                     abstracts[pmid] = {'date': date,
                                        'title': title,
                                        'abstract': abstract}
-            except:
+            except Exception:
                 pass
                 # print(pmid)
         for doc in d['PubmedBookArticle']:
@@ -324,7 +324,7 @@ class PubMedDivide:
             date, _ = self.get_pub_date(doc, 'book_article')
             try:
                 title = doc['BookDocument']['ArticleTitle']
-            except:
+            except Exception:
                 title = ''
             try:
                 abstract = doc['BookDocument']['Abstract']['AbstractText']
@@ -338,7 +338,7 @@ class PubMedDivide:
                     abstracts[pmid] = {'date': date,
                                        'title': title,
                                        'abstract': abstract}
-            except:
+            except Exception:
                 pass
                 # print(pmid)
 
@@ -370,7 +370,7 @@ class PubMedDivide:
                 # date = year + '/' + month + '/' + day
                 date = year + '/' + month
                 found = 1
-            except:
+            except Exception:
                 date = ''
                 found = 0
         elif doc_type == 'book_article':
@@ -379,7 +379,7 @@ class PubMedDivide:
                 month = doc['BookDocument']['Book']['PubDate']['Month']
                 date = year + '/' + month
                 found = 1
-            except:
+            except Exception:
                 date = ''
                 found = 0
 

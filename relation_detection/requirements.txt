@@ -1,0 +1,8 @@
+# Relation detection and probing experiments; the versions are the ones listed as tested in README.md
+torch==2.0.1
+scikit-learn==1.2.2
+tqdm==4.65.0
+transformers==4.29.2
+numpy==1.23.5
+# Needed by the BioGPT tokenizers (--embed_mode BioGPT_base / BioGPT_large)
+sacremoses

@@ -4,6 +4,7 @@ We describe the process of sentence sampling and annotation. In this implementat
 
 ## Setup
 ### Requirements
+Install them with ```pip install -r requirements.txt```.
  - numpy (tested with version 1.23.5)
  - streamlit (tested with version 1.20.0)
  - scispacy (tested with version 0.5.1)

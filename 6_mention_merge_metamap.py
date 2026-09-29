@@ -114,7 +114,7 @@ if __name__ == '__main__':
             d = pd.read_csv(f)
             entities = get_entities(d)
             all_entities[abstract_id] = entities
-        except:
+        except Exception:
             pass
 
     for k1 in all_entities:
@@ -126,7 +126,7 @@ if __name__ == '__main__':
                 semantic_types_reformed.append(t.replace(' ', ''))
                 try:
                     mapped_types.append(mapping[t.replace(' ', '')])
-                except:
+                except Exception:
                     pass
             all_entities[k1][k2]['mapped_semantic_type'] = mapped_types
             all_entities[k1][k2]['semantic_type'] = semantic_types_reformed
@@ -174,7 +174,7 @@ if __name__ == '__main__':
         for k_r in keys_to_remove:
             try:
                 all_entities[k].pop(k_r)
-            except:
+            except Exception:
                 pass
 
         # Deal with overlaps
@@ -191,11 +191,11 @@ if __name__ == '__main__':
         for k_r in keys_to_remove:
             try:
                 all_entities[k].pop(k_r[0])
-            except:
+            except Exception:
                 pass
             try:
                 all_entities[k].pop(k_r[1])
-            except:
+            except Exception:
                 pass
 
 

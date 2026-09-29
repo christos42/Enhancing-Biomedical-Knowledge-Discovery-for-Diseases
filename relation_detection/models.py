@@ -1,6 +1,9 @@
+import os
 import sys
 import torch
-from transformers import AutoTokenizer, AutoModel, BioGptTokenizer, BioGptModel
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from utils.training_utils import load_backbone_with_markers, inter_representation, atlop_context_vector
 
 
 class LaMReDA(torch.nn.Module):
@@ -9,167 +12,9 @@ class LaMReDA(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'BiomedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(768)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(768)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BiomedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioLinkBERT_base':
-            #self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(768)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(768)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioLinkBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioGPT_base':
-            #self.tokenizer = BioGptTokenizer.from_pretrained("microsoft/biogpt")
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/biogpt")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            #self.model = BioGptModel.from_pretrained("microsoft/biogpt")
-            self.model = AutoModel.from_pretrained("microsoft/biogpt")
-
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embed_tokens.weight.data
-
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioGPT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BioGPT-Large")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BioGPT-Large")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embed_tokens.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1600)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1600)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens = new_emb
+        self.tokenizer, self.model, classification_input_size = load_backbone_with_markers(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
-            classification_input_size = 768
-        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base']:
-            classification_input_size = 1024
-        elif args.embed_mode == 'BioGPT_large':
-            classification_input_size = 1600
 
         if args.exp_setting == 'binary':
             classification_output_size = 1
@@ -210,17 +55,7 @@ class LaMReDA(torch.nn.Module):
             start_ent_2 = entities_range[i][1][0]
             end_ent_2 = entities_range[i][1][1]
             if self.args.aggregation == 'inter':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 final_rep =  self.head_tail_projector(inter_rep)
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'start_start':
@@ -255,17 +90,7 @@ class LaMReDA(torch.nn.Module):
                     ent_2_rep) + self.tail_projector(ent_1_rep) + self.head_tail_projector(r1[0])
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'cls_inter':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 final_rep = self.head_tail_projector(inter_rep) + self.head_tail_projector(r1[0])
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'cls_start_end_start_end':
@@ -275,151 +100,39 @@ class LaMReDA(torch.nn.Module):
                     r1[end_ent_2]) + self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_1]) + + self.head_tail_projector(r1[0])
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'start_inter_start':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 final_rep = self.head_projector(r1[start_ent_1]) + self.tail_projector(
                     r1[start_ent_2]) + self.head_projector(r1[start_ent_2]) + self.tail_projector(r1[start_ent_1]) + self.head_tail_projector(inter_rep)
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'end_inter_end':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 final_rep = self.head_projector(r1[end_ent_1]) + self.tail_projector(
                     r1[end_ent_2]) + self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_1]) + self.head_tail_projector(inter_rep)
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'start_end_inter_start_end':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 final_rep = self.head_projector(r1[start_ent_1]) + self.tail_projector(
                     r1[start_ent_2]) + self.head_projector(r1[start_ent_2]) + self.tail_projector(
                     r1[start_ent_1]) + self.head_projector(r1[end_ent_1]) + self.tail_projector(
                     r1[end_ent_2]) + self.head_projector(r1[end_ent_2]) + self.tail_projector(r1[end_ent_1]) + self.head_tail_projector(inter_rep)
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'ent_context_inter_ent_context':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 ent_1_rep = torch.mean(r1[start_ent_1 + 1:end_ent_1], 0)
                 ent_2_rep = torch.mean(r1[start_ent_2 + 1:end_ent_2], 0)
                 final_rep = self.head_projector(ent_1_rep) + self.tail_projector(ent_2_rep) + self.head_projector(
                     ent_2_rep) + self.tail_projector(ent_1_rep) + self.head_tail_projector(inter_rep)
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'atlop_context_vector_only':
-                # check where [ent] in input ids
-                #where_start_ent_in_input_ids = torch.where(input_ids[i] == self.start_ent_token_index)
-
-                # get batch and sequence indices of the first [ent]
-                #head_batch_index = where_start_ent_in_input_ids[0][0]
-                #head_sequence_index = where_start_ent_in_input_ids[0][0]
-
-                # get batch and sequence indices of the second [ent]
-                #tail_batch_index = where_start_ent_in_input_ids[0][1]
-                #tail_sequence_index = where_start_ent_in_input_ids[0][1]
-
-                # extract attentions from the model output
-                attentions = x['attentions'][-1][i]
-
-                # extract hidden_states from the model output
-                #hidden_states = output.last_hidden_state
-
-                # extract attentions of first [ent] and sequence
-                #head_attentions = attentions[[i], :, [head_sequence_index], :]
-                #head_attentions = attentions[:, head_sequence_index, :]
-                head_attentions = attentions[:, start_ent_1, :]
-                # extract attentions of second [ent] and sequence
-                #tail_attentions = attentions[[i], :, [tail_sequence_index], :]
-                #tail_attentions = attentions[:, tail_sequence_index, :]
-                tail_attentions = attentions[:, start_ent_2, :]
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                #head_tail_attentions = (head_attentions * tail_attentions).mean(dim=1)
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-
-                # normalize in order to have a distribution over sequence
-                #head_tail_attentions /= (head_tail_attentions.sum(dim=1, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                #head_tail_context_vector = torch.einsum("bse,bs->be", x.last_hidden_state, head_tail_attentions)
-                #head_tail_context_vector = torch.einsum("se,s->e", r1, head_tail_attentions)
-                head_tail_context_vector = head_tail_attentions @ r1
-
+                # Attention of the last layer from the [ent] markers of the two entities
+                head_tail_context_vector = atlop_context_vector(x['attentions'][-1][i], r1,
+                                                                (start_ent_1, start_ent_1), (start_ent_2, start_ent_2))
                 final_rep = self.head_tail_projector(head_tail_context_vector)
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'atlop_context_vector':
-                # check where [ent] in input ids
-                #where_start_ent_in_input_ids = torch.where(input_ids[i] == self.start_ent_token_index)
-
-                # get batch and sequence indices of the first [ent]
-                #head_batch_index = where_start_ent_in_input_ids[0][0]
-                #head_sequence_index = where_start_ent_in_input_ids[0][0]
-
-                # get batch and sequence indices of the second [ent]
-                #tail_batch_index = where_start_ent_in_input_ids[0][1]
-                #tail_sequence_index = where_start_ent_in_input_ids[0][1]
-
-                # extract attentions from the model output
-                #attentions = x['attentions'][-1]
-                attentions = x['attentions'][-1][i]
-
-                # extract hidden_states from the model output
-                #hidden_states = output.last_hidden_state
-
-                # extract attentions of first [ent] and sequence
-                #head_attentions = attentions[[i], :, [head_sequence_index], :]
-                #head_attentions = attentions[:, head_sequence_index, :]
-                head_attentions = attentions[:, start_ent_1, :]
-                # extract attentions of second [ent] and sequence
-                #tail_attentions = attentions[[i], :, [tail_sequence_index], :]
-                #tail_attentions = attentions[:, tail_sequence_index, :]
-                tail_attentions = attentions[:, start_ent_2, :]
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                #head_tail_attentions = (head_attentions * tail_attentions).mean(dim=1)
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-
-                # normalize in order to have a distribution over sequence
-                #head_tail_attentions /= (head_tail_attentions.sum(dim=1, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                #head_tail_context_vector = torch.einsum("bse,bs->be", x.last_hidden_state, head_tail_attentions)
-                #head_tail_context_vector = torch.einsum("se,s->e", r1, head_tail_attentions)
-                head_tail_context_vector = head_tail_attentions @ r1
-
+                # Attention of the last layer from the [ent] markers of the two entities
+                head_tail_context_vector = atlop_context_vector(x['attentions'][-1][i], r1,
+                                                                (start_ent_1, start_ent_1), (start_ent_2, start_ent_2))
                 final_rep = self.head_projector(r1[start_ent_1]) + self.tail_projector(
                     r1[start_ent_2]) + self.head_projector(r1[start_ent_2]) + self.tail_projector(
                     r1[start_ent_1]) + self.head_tail_projector(head_tail_context_vector)
@@ -447,159 +160,9 @@ class LaMReDM(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'BiomedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(768)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(768)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'BiomedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-        elif args.embed_mode == 'BioLinkBERT_base':
-            #self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(768)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(768)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioLinkBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embeddings.word_embeddings.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            #new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            #new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embeddings.word_embeddings = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioGPT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/biogpt")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/biogpt")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embed_tokens.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(768), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1024)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1024)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens = new_emb
-
-            self.start_ent_token_index = self.tokenizer.encode("[ent]", add_special_tokens=False)[0]
-        elif args.embed_mode == 'BioGPT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BioGPT-Large")
-            # Add the special tokens
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-            self.model = AutoModel.from_pretrained("microsoft/BioGPT-Large")
-            # Initialize randomly (using seed) the embeddings of the new tokens
-            weights = self.model.embed_tokens.weight.data
-            generator = torch.Generator().manual_seed(42)  # own generator, so --seed still drives everything else
-            # new_weights = torch.cat((weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # new_weights = torch.cat((new_weights, torch.unsqueeze(torch.rand(1024), 0)), 0)
-            # Idea: small initialization embedding
-            w1 = torch.empty(1600)
-            w1 = w1.uniform_(-1e-4, 1e-4, generator=generator)
-            w1 = torch.unsqueeze(w1, 0)
-            w2 = torch.empty(1600)
-            w2 = w2.uniform_(-1e-4, 1e-4, generator=generator)
-            w2 = torch.unsqueeze(w2, 0)
-            new_weights = torch.cat((weights, w1, w2), 0)
-            # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
-            new_weights[self.tokenizer.convert_tokens_to_ids(['[ent]', '[/ent]'])] = torch.cat((w1, w2), 0)
-            new_emb = torch.nn.Embedding.from_pretrained(new_weights, padding_idx=0, freeze=False)
-            self.model.embed_tokens = new_emb
+        self.tokenizer, self.model, classification_input_size = load_backbone_with_markers(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode in ['BiomedBERT_base', 'BioLinkBERT_base']:
-            classification_input_size = 768
-        elif args.embed_mode in ['BiomedBERT_large', 'BioLinkBERT_large', 'BioGPT_base']:
-            classification_input_size = 1024
-        elif args.embed_mode == 'BioGPT_large':
-            classification_input_size = 1600
 
         if args.exp_setting == 'binary':
             classification_output_size = 1
@@ -675,16 +238,7 @@ class LaMReDM(torch.nn.Module):
                 m_ent = torch.mul(m_ent, self.head_tail_projector(r1[0]))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'start_inter_start':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 m_ent_1 = self.head_projector(r1[start_ent_1]) + self.tail_projector(
                     r1[start_ent_1])
                 m_ent_2 = self.head_projector(r1[start_ent_2]) + self.tail_projector(
@@ -693,16 +247,7 @@ class LaMReDM(torch.nn.Module):
                 m_ent = torch.mul(m_ent, self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'end_inter_end':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 m_ent_1 = self.head_projector(r1[end_ent_1]) + self.tail_projector(
                     r1[end_ent_1])
                 m_ent_2 = self.head_projector(r1[end_ent_2]) + self.tail_projector(
@@ -711,16 +256,7 @@ class LaMReDM(torch.nn.Module):
                 m_ent = torch.mul(m_ent, self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'start_end_inter_start_end':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 m_ent_1 = torch.mul(self.head_projector(r1[start_ent_1]) + self.tail_projector(r1[start_ent_1]),
                                     self.head_projector(r1[end_ent_1]) + self.tail_projector(r1[end_ent_1]))
                 m_ent_2 = torch.mul(self.head_projector(r1[start_ent_2]) + self.tail_projector(r1[start_ent_2]),
@@ -729,16 +265,7 @@ class LaMReDM(torch.nn.Module):
                 m_ent = torch.mul(m_ent, self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'cls_inter':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 m_ent = torch.mul(self.head_tail_projector(r1[0]), self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'ent_context_ent_context':
@@ -757,16 +284,7 @@ class LaMReDM(torch.nn.Module):
                 m_ent = torch.mul(m_ent, self.head_tail_projector(r1[0]))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'ent_context_inter_ent_context':
-                if end_ent_1 + 1 == start_ent_2:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_2 + 1 == start_ent_1:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
-                elif end_ent_1 < start_ent_2:
-                    inter_rep = torch.mean(r1[end_ent_1 + 1:start_ent_2], 0)
-                elif end_ent_2 < start_ent_1:
-                    inter_rep = torch.mean(r1[end_ent_2 + 1:start_ent_1], 0)
-                else:
-                    inter_rep = torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
+                inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
                 m_ent_1 = torch.mean(r1[start_ent_1 + 1:end_ent_1], 0)
                 m_ent_2 = torch.mean(r1[start_ent_2 + 1:end_ent_2], 0)
                 m_ent_1 = self.head_projector(m_ent_1) + self.tail_projector(m_ent_1)
@@ -775,20 +293,9 @@ class LaMReDM(torch.nn.Module):
                 m_ent = torch.mul(m_ent, self.head_tail_projector(inter_rep))
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'atlop_context_vector':
-                attentions = x['attentions'][-1][i]
-                head_attentions = attentions[:, start_ent_1, :]
-                tail_attentions = attentions[:, start_ent_2, :]
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-                #print(head_tail_attentions.shape)
-
-                # normalize in order to have a distribution over sequence
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                head_tail_context_vector = head_tail_attentions @ r1
-
+                # Attention of the last layer from the [ent] markers of the two entities
+                head_tail_context_vector = atlop_context_vector(x['attentions'][-1][i], r1,
+                                                                (start_ent_1, start_ent_1), (start_ent_2, start_ent_2))
                 m_ent_1 = torch.mean(r1[start_ent_1 + 1:end_ent_1], 0)
                 m_ent_2 = torch.mean(r1[start_ent_2 + 1:end_ent_2], 0)
                 m_ent_1 = self.head_projector(m_ent_1) + self.tail_projector(m_ent_1)

@@ -1,8 +1,9 @@
 import numpy as np
 import argparse
-import sys 
+import os
+import sys
 
-sys.path.append('../utils/')
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'utils'))
 from utils import read_json, save_json
 
 def get_chunk(pos):

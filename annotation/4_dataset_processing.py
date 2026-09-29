@@ -6,7 +6,7 @@ import scispacy
 import spacy
 import numpy as np
 
-sys.path.append('../utils/')
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'utils'))
 from utils import read_json, save_json, find_json_files
 
 

@@ -1,8 +1,8 @@
 import argparse
 import os
+import sys
 import logging
 import torch
-import numpy as np
 
 from sklearn.metrics import precision_recall_fscore_support, fbeta_score
 from tqdm import tqdm
@@ -12,25 +12,13 @@ from torch.nn import CosineEmbeddingLoss, CosineSimilarity
 from dataloader import *
 from models import LaMEL, LaMEL_inter
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from utils.training_utils import save_results, set_seed
+
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-class save_results(object):
-    def __init__(self, filename, header=None):
-        self.filename = filename
-        if os.path.exists(filename):
-            os.remove(filename)
-
-        if header is not None:
-            with open(filename, 'w') as out:
-                print(header, file=out)
-
-    def save(self, info):
-        with open(self.filename, 'a') as out:
-            print(info, file=out)
 
 
 def evaluate(test_batch, loss_fn, cos_sim, args, test_or_dev):
@@ -69,14 +57,6 @@ def evaluate(test_batch, loss_fn, cos_sim, args, test_or_dev):
         logger.info("precision={:.4f}, recall={:.4f}, f1={:.4f}, f_0_5={:.4f}".format(precision, recall, f1, f_0_5))
 
     return precision, recall, f1, f_0_5, test_loss / steps
-
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
 
 
 if __name__ == '__main__':

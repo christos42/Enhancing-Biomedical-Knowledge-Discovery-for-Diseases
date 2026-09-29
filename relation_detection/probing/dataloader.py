@@ -1,10 +1,12 @@
+import os
 import sys
-from transformers import AutoTokenizer, AutoModelForMaskedLM
+from transformers import AutoTokenizer
 from torch.utils.data import Dataset, DataLoader
 import random
 
-sys.path.append('../../')
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 from utils.utils import read_json
+from utils.training_utils import CV, PROBING_BACKBONES
 
 class collater_1():
     def __init__(self):
@@ -22,10 +24,7 @@ class DataProcess(Dataset):
     def __init__(self, data, embed_mode, exp_setting):
         self.data = data
         self.embed_mode = embed_mode
-        if embed_mode == 'PubMedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-        elif embed_mode == 'PubMedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
+        self.tokenizer = AutoTokenizer.from_pretrained(PROBING_BACKBONES[embed_mode][0])
 
         if exp_setting == 'binary':
             self.mapping = {'No Relation': 0,
@@ -89,62 +88,6 @@ def data_preprocess(keys, data):
 
         processed += [(text, entities, relation)]
     return processed
-
-
-class CV():
-    def __init__(self, keys, k):
-        self.keys = keys
-        self.k = k
-
-    def get_cv_splits(self, fold):
-        splits = []
-        step = len(self.keys) // self.k
-        for i in range(0, self.k * step, step):
-            splits.append(self.keys[i:i + step])
-        # Add the remaining keys in the last fold
-        splits[-1] += self.keys[self.k * step:]
-        # k-fold CV
-        train_keys = []
-        test_keys = []
-        for i, s in enumerate(splits):
-            if i == fold:
-                test_keys += s
-            else:
-                train_keys += s
-        return train_keys, test_keys
-
-    def get_unique_sentences(self):
-        sentences = []
-        for k in self.keys:
-            if '_'.join(k.split('_')[:2]) not in sentences:
-                sentences.append('_'.join(k.split('_')[:2]))
-        return sentences
-
-    def get_cv_splits_sentence_wise(self, fold):
-        sentences = self.get_unique_sentences()
-        splits = []
-        step = len(sentences) // self.k
-        for i in range(0, self.k * step, step):
-            splits.append(sentences[i:i + step])
-        # Add the remaining sentences in the last fold
-        splits[-1] += sentences[self.k * step:]
-        splits_keys = []
-        for i, s in enumerate(splits):
-            temp_s = []
-            for sent in s:
-                for k in self.keys:
-                    if '_'.join(k.split('_')[:2]) == sent:
-                        temp_s.append(k)
-            splits_keys.append(temp_s)
-        # 5 fold CV
-        train_keys = []
-        test_keys = []
-        for i, s in enumerate(splits_keys):
-            if i == fold:
-                test_keys += s
-            else:
-                train_keys += s
-        return train_keys, test_keys
 
 
 def dataloader(args):

@@ -86,7 +86,7 @@ def resolve_overlaps(positions, d_, overlaps):
                     keys_to_remove.append(p2)
                 else:
                     keys_to_remove.append(p1)
-        except:
+        except Exception:
             if type(score1) == list:
                 s1 = score1[0]
             else:

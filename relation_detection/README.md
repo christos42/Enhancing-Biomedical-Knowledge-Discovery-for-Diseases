@@ -5,7 +5,8 @@ This subdirectory consist of the supervised approaches of the study, presenting 
 
 ## Setup
 ### Requirements
- - Python 3.5+
+Install them with ```pip install -r requirements.txt```.
+ - Python 3.8+
  - pytorch (tested with version 2.0.1)
  - scikit-learn (tested with version 1.2.2)
  - tqdm (tested with version 4.65.0)

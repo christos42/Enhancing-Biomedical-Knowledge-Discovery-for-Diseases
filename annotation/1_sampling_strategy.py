@@ -4,7 +4,7 @@ import os
 import sys 
 import random
 
-sys.path.append('../utils/')
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'utils'))
 from utils import read_json, save_json
 
 # function that creates random sample 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
             cui_co_2 = p[1].replace('||', '_')
             try:
                 freq_per_pair.append(cooc[cui_co_1 + '_' + cui_co_2]['frequency'])
-            except:
+            except Exception:
                 freq_per_pair.append(cooc[cui_co_2 + '_' + cui_co_1]['frequency'])
         
         if len(freq_per_pair) > 0:
@@ -145,7 +145,7 @@ if __name__ == '__main__':
             try:
                 # Remove artificial id in case it was sampled.
                 b1.remove('foo')
-            except:
+            except Exception:
                 pass
             # Remove the sampled ids from the list
             for id_ in b1:
@@ -160,7 +160,7 @@ if __name__ == '__main__':
             try:
                 # Remove artificial id in case it was sampled.
                 b2.remove('foo')
-            except:
+            except Exception:
                 pass
             # Remove the sampled ids from the list
             for id_ in b2:
@@ -180,7 +180,7 @@ if __name__ == '__main__':
         try:
             # Remove artificial id.
             ids_to_be_sampled.remove('foo')
-        except:
+        except Exception:
             pass
             
         if len(ids_to_be_sampled) > 0:

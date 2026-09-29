@@ -1,6 +1,9 @@
+import os
 import sys
 import torch
-from transformers import AutoTokenizer, AutoModel
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+from utils.training_utils import load_frozen_backbone, atlop_context_vector
 
 
 class LMREA(torch.nn.Module):
@@ -9,28 +12,9 @@ class LMREA(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:12]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
-        elif args.embed_mode == 'PubMedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:24]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
+        self.tokenizer, self.model, classification_input_size = load_frozen_backbone(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode == 'PubMedBERT_base':
-            classification_input_size = 768
-        elif args.embed_mode == 'PubMedBERT_large':
-            classification_input_size = 1024
 
         if args.exp_setting == 'binary':
             classification_output_size = 1
@@ -68,25 +52,8 @@ class LMREA(torch.nn.Module):
                 final_rep = torch.add(ent_1_rep, ent_2_rep)
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'atlop_context_vector':
-                # extract attentions from the model output
-                attentions = x['attentions'][self.args.encoding_layer][i]
-
-                # extract hidden_states from the model output
-                #hidden_states = output.last_hidden_state
-
-                # extract attentions of the two entities and sequence
-                head_attentions = torch.mean(attentions[:, start_ent_1:end_ent_1 + 1, :], 1)
-                tail_attentions = torch.mean(attentions[:, start_ent_2:end_ent_2 + 1, :], 1)
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-
-                # normalize in order to have a distribution over sequence
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                head_tail_context_vector = head_tail_attentions @ r1
-                #print(head_tail_context_vector.shape)
+                head_tail_context_vector = atlop_context_vector(x['attentions'][self.args.encoding_layer][i], r1,
+                                                                (start_ent_1, end_ent_1), (start_ent_2, end_ent_2))
 
                 # Averaged representations of the entities
                 ent_1_rep = torch.mean(r1[start_ent_1:end_ent_1 + 1], 0)
@@ -97,25 +64,8 @@ class LMREA(torch.nn.Module):
 
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'atlop_context_vector_only':
-                # extract attentions from the model output
-                attentions = x['attentions'][self.args.encoding_layer][i]
-
-                # extract hidden_states from the model output
-                #hidden_states = output.last_hidden_state
-
-                # extract attentions of the two entities and sequence
-                head_attentions = torch.mean(attentions[:, start_ent_1:end_ent_1 + 1, :], 1)
-                tail_attentions = torch.mean(attentions[:, start_ent_2:end_ent_2 + 1, :], 1)
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-
-                # normalize in order to have a distribution over sequence
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                head_tail_context_vector = head_tail_attentions @ r1
-                #print(head_tail_context_vector.shape)
+                head_tail_context_vector = atlop_context_vector(x['attentions'][self.args.encoding_layer][i], r1,
+                                                                (start_ent_1, end_ent_1), (start_ent_2, end_ent_2))
 
                 rel_representations.append(head_tail_context_vector)
 
@@ -136,28 +86,9 @@ class LMREA_proj(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:12]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
-        elif args.embed_mode == 'PubMedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:24]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
+        self.tokenizer, self.model, classification_input_size = load_frozen_backbone(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode == 'PubMedBERT_base':
-            classification_input_size = 768
-        elif args.embed_mode == 'PubMedBERT_large':
-            classification_input_size = 1024
 
         if args.exp_setting == 'binary':
             classification_output_size = 1
@@ -198,25 +129,8 @@ class LMREA_proj(torch.nn.Module):
                 final_rep = self.head_projector(ent_1_rep) + self.tail_projector(ent_2_rep) + self.head_projector(ent_2_rep) + self.tail_projector(ent_1_rep)
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'atlop_context_vector':
-                # extract attentions from the model output
-                attentions = x['attentions'][self.args.encoding_layer][i]
-
-                # extract hidden_states from the model output
-                #hidden_states = output.last_hidden_state
-
-                # extract attentions of the two entities and sequence
-                head_attentions = torch.mean(attentions[:, start_ent_1:end_ent_1 + 1, :], 1)
-                tail_attentions = torch.mean(attentions[:, start_ent_2:end_ent_2 + 1, :], 1)
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-
-                # normalize in order to have a distribution over sequence
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                head_tail_context_vector = head_tail_attentions @ r1
-                #print(head_tail_context_vector.shape)
+                head_tail_context_vector = atlop_context_vector(x['attentions'][self.args.encoding_layer][i], r1,
+                                                                (start_ent_1, end_ent_1), (start_ent_2, end_ent_2))
 
                 # Averaged representations of the entities
                 ent_1_rep = torch.mean(r1[start_ent_1:end_ent_1 + 1], 0)
@@ -227,25 +141,8 @@ class LMREA_proj(torch.nn.Module):
                              self.head_tail_projector(head_tail_context_vector))
                 rel_representations.append(final_rep)
             elif self.args.aggregation == 'atlop_context_vector_only':
-                # extract attentions from the model output
-                attentions = x['attentions'][self.args.encoding_layer][i]
-
-                # extract hidden_states from the model output
-                #hidden_states = output.last_hidden_state
-
-                # extract attentions of the two entities and sequence
-                head_attentions = torch.mean(attentions[:, start_ent_1:end_ent_1 + 1, :], 1)
-                tail_attentions = torch.mean(attentions[:, start_ent_2:end_ent_2 + 1, :], 1)
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-
-                # normalize in order to have a distribution over sequence
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                head_tail_context_vector = head_tail_attentions @ r1
-                #print(head_tail_context_vector.shape)
+                head_tail_context_vector = atlop_context_vector(x['attentions'][self.args.encoding_layer][i], r1,
+                                                                (start_ent_1, end_ent_1), (start_ent_2, end_ent_2))
 
                 final_rep = self.head_tail_projector(head_tail_context_vector)
                 rel_representations.append(final_rep)
@@ -267,28 +164,9 @@ class LMREM(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:12]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
-        elif args.embed_mode == 'PubMedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:24]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
+        self.tokenizer, self.model, classification_input_size = load_frozen_backbone(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode == 'PubMedBERT_base':
-            classification_input_size = 768
-        elif args.embed_mode == 'PubMedBERT_large':
-            classification_input_size = 1024
 
         if args.exp_setting == 'binary':
             classification_output_size = 1
@@ -326,25 +204,8 @@ class LMREM(torch.nn.Module):
                 m_ent = torch.mul(m_ent_1, m_ent_2)
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'atlop_context_vector':
-                # extract attentions from the model output
-                attentions = x['attentions'][self.args.encoding_layer][i]
-
-                # extract hidden_states from the model output
-                #hidden_states = output.last_hidden_state
-
-                # extract attentions of the two entities and sequence
-                head_attentions = torch.mean(attentions[:, start_ent_1:end_ent_1 + 1, :], 1)
-                tail_attentions = torch.mean(attentions[:, start_ent_2:end_ent_2 + 1, :], 1)
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-
-                # normalize in order to have a distribution over sequence
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                head_tail_context_vector = head_tail_attentions @ r1
-                #print(head_tail_context_vector.shape)
+                head_tail_context_vector = atlop_context_vector(x['attentions'][self.args.encoding_layer][i], r1,
+                                                                (start_ent_1, end_ent_1), (start_ent_2, end_ent_2))
 
                 # Multiplied representations of the entities
                 m_ent_1 = torch.mean(r1[start_ent_1:end_ent_1 + 1], 0)
@@ -371,28 +232,9 @@ class LMREM_proj(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:12]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
-        elif args.embed_mode == 'PubMedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:24]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
+        self.tokenizer, self.model, classification_input_size = load_frozen_backbone(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if args.embed_mode == 'PubMedBERT_base':
-            classification_input_size = 768
-        elif args.embed_mode == 'PubMedBERT_large':
-            classification_input_size = 1024
 
         if args.exp_setting == 'binary':
             classification_output_size = 1
@@ -435,25 +277,8 @@ class LMREM_proj(torch.nn.Module):
                 m_ent = torch.mul(m_ent_1, m_ent_2)
                 rel_representations.append(m_ent)
             elif self.args.aggregation == 'atlop_context_vector':
-                # extract attentions from the model output
-                attentions = x['attentions'][self.args.encoding_layer][i]
-
-                # extract hidden_states from the model output
-                #hidden_states = output.last_hidden_state
-
-                # extract attentions of the two entities and sequence
-                head_attentions = torch.mean(attentions[:, start_ent_1:end_ent_1 + 1, :], 1)
-                tail_attentions = torch.mean(attentions[:, start_ent_2:end_ent_2 + 1, :], 1)
-
-                # hadamard product of the head_attentions and tail_attentions, then average over heads
-                head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
-
-                # normalize in order to have a distribution over sequence
-                head_tail_attentions /= (head_tail_attentions.sum(dim=0, keepdim=True) + torch.finfo(head_tail_attentions.dtype).eps)
-
-                # use the head_tail_attentions distribution to aggregate info from hidden_states
-                head_tail_context_vector = head_tail_attentions @ r1
-                #print(head_tail_context_vector.shape)
+                head_tail_context_vector = atlop_context_vector(x['attentions'][self.args.encoding_layer][i], r1,
+                                                                (start_ent_1, end_ent_1), (start_ent_2, end_ent_2))
 
                 # Multiplied representations of the entities
                 m_ent_1 = torch.mean(r1[start_ent_1:end_ent_1 + 1], 0)
@@ -482,22 +307,7 @@ class LMRE_attention(torch.nn.Module):
 
         self.args = args
         self.device = device
-        if args.embed_mode == 'PubMedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:12]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
-        elif args.embed_mode == 'PubMedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Freeze the encoding layers
-            modules = [self.model.embeddings, *self.model.encoder.layer[:24]]
-            for module in modules:
-                for param in module.parameters():
-                    param.requires_grad = False
+        self.tokenizer, self.model, _ = load_frozen_backbone(args.embed_mode)
 
         self.dropout = torch.nn.Dropout(args.dropout)
         if args.embed_mode == 'PubMedBERT_base':
