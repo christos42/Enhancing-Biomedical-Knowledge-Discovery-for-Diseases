@@ -296,7 +296,7 @@ class LMREM_proj(torch.nn.Module):
             rel_representations_tensor = self.dropout(rel_representations_tensor)
 
         y = self.BN(rel_representations_tensor)
-        y = self.classification_layer(rel_representations_tensor)
+        y = self.classification_layer(y)
 
         return y
 
