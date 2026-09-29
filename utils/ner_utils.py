@@ -119,30 +119,22 @@ def merge_same_entities_scispacy(data):
             for i, en in enumerate(data[k1][k2]['entities']):
                 if (en[0], en[2], en[3]) not in ent_list_triplets:
                     ent_list_triplets.append((en[0], en[2], en[3]))
-                    ent_dict[en[0] + '_' + str(en[2]) + '_' + str(en[3])] = {'type': [en[1]],
-                                                                             'grouped_type': [get_grouped_ne_tag_scispacy(en[1])],
-                                                                             'pipeline': [en[4]]}
+                    ent_dict[(en[0], en[2], en[3])] = {'type': [en[1]],
+                                                       'grouped_type': [get_grouped_ne_tag_scispacy(en[1])],
+                                                       'pipeline': [en[4]]}
                     linked_ent_list.append(data[k1][k2]['linked_entities'][i])
                 else:
-                    ent_dict[en[0] + '_' + str(en[2]) + '_' + str(en[3])]['type'].append(en[1])
-                    ent_dict[en[0] + '_' + str(en[2]) + '_' + str(en[3])]['grouped_type'].append(get_grouped_ne_tag_scispacy(en[1]))
-                    ent_dict[en[0] + '_' + str(en[2]) + '_' + str(en[3])]['pipeline'].append(en[4])
+                    ent_dict[(en[0], en[2], en[3])]['type'].append(en[1])
+                    ent_dict[(en[0], en[2], en[3])]['grouped_type'].append(get_grouped_ne_tag_scispacy(en[1]))
+                    ent_dict[(en[0], en[2], en[3])]['pipeline'].append(en[4])
             ent_transformed = []
             for k in ent_dict:
-                try:
-                    ent_transformed.append({'name': k.split('_')[0],
-                                            'start': int(k.split('_')[1]),
-                                            'end': int(k.split('_')[2]),
-                                            'type': ent_dict[k]['type'],
-                                            'grouped_type': ent_dict[k]['grouped_type'],
-                                            'pipeline': ent_dict[k]['pipeline']})
-                except:
-                    ent_transformed.append({'name': k.split('_')[0],
-                                            'start': '',
-                                            'end': '',
-                                            'type': ent_dict[k]['type'],
-                                            'grouped_type': ent_dict[k]['grouped_type'],
-                                            'pipeline': ent_dict[k]['pipeline']})
+                ent_transformed.append({'name': k[0],
+                                        'start': k[1],
+                                        'end': k[2],
+                                        'type': ent_dict[k]['type'],
+                                        'grouped_type': ent_dict[k]['grouped_type'],
+                                        'pipeline': ent_dict[k]['pipeline']})
             data_entity_merging[k1][k2] = {'entities': ent_transformed,
                                            'linked_entities': linked_ent_list,
                                            'POS': data[k1][k2]['POS'],

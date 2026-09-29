@@ -19,7 +19,8 @@ def find_json_files(path):
             if name.endswith('.json'):
                 f_path.append(os.path.join(root, name))
 
-    return f_path
+    # Sorted, so that listings of different folders line up (os.walk order is filesystem-dependent)
+    return sorted(f_path)
 
 
 def find_csv_files(path):
@@ -29,7 +30,8 @@ def find_csv_files(path):
             if name.endswith('.csv'):
                 f_path.append(os.path.join(root, name))
 
-    return f_path
+    # Sorted, so that listings of different folders line up (os.walk order is filesystem-dependent)
+    return sorted(f_path)
 
 def create_new_folder(path):
     isExist = os.path.exists(path)

@@ -24,12 +24,12 @@ def get_chunk(pos):
 
 def merge_sequent_entities(en1, en2, chunk1, chunk2):
     m_ent = {'preferred_name': en1['preferred_name'] + '||' + en2['preferred_name'],
-             'cui': "||".join(list(set((en1['cui'] + '||' + en2['cui']).split('||')))),
-             'semantic_type': list(set(en1['semantic_type'] + en2['semantic_type'])),
-             'position': str(chunk1[0] + 1) + '/' + str(chunk2[1] - chunk1[0]),
+             'cui': "||".join(list(dict.fromkeys((en1['cui'] + '||' + en2['cui']).split('||')))),
+             'semantic_type': list(dict.fromkeys(en1['semantic_type'] + en2['semantic_type'])),
+             'position': str(chunk1[0] + 1) + '/' + str(max(chunk1[1], chunk2[1]) - chunk1[0]),
              'score': [en1['score'], en2['score']],
-             'trigger': "||".join(list(set((en1['trigger'] + '||' + en2['trigger']).split('||')))),
-             'mapped_semantic_type': list(set(en1['mapped_semantic_type'] + en2['mapped_semantic_type']))}
+             'trigger': "||".join(list(dict.fromkeys((en1['trigger'] + '||' + en2['trigger']).split('||')))),
+             'mapped_semantic_type': list(dict.fromkeys(en1['mapped_semantic_type'] + en2['mapped_semantic_type']))}
 
     return m_ent
 
@@ -142,7 +142,8 @@ def resolve_overlaps_with_expansion(positions, d_):
 
 def check_expansion(position, sentence):
     p_start, p_stop = get_chunk(position)
-    new_p_stop = p_stop
+    # Index of the last character of the expanded entity (the end of the sentence if no boundary follows)
+    new_p_stop = len(sentence) - 1
     for index in range(p_stop, len(sentence)):
         #if (sentence[index] in [' ', '(', ')', '<', '>']) or (sentence[index] == '.' and index == len(sentence) - 1):
         #if (sentence[index] in [' ', ',']) or (sentence[index] == '.' and index == len(sentence) - 1):
@@ -154,12 +155,12 @@ def check_expansion(position, sentence):
     index = p_start - 1
     while index >= 0:
         #if (sentence[index] in [' ', '(', ')', '<', '>']):
-        if (sentence[index] in [' ']) or (index==0):
-            new_p_start = index + 1
+        if (sentence[index] in [' ']):
             break
+        new_p_start = index
         index -= 1
 
-    if new_p_stop == p_stop and new_p_start == p_start:
+    if new_p_stop == p_stop - 1 and new_p_start == p_start:
         update = 0
     else:
         update = 1

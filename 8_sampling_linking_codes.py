@@ -17,7 +17,7 @@ def sampling_linking_codes_strategy(data_merged):
                                           'description': [],
                                           'probability': [],
                                           'linker': []}
-                for tag in list(set(ent['grouped_type'])):
+                for tag in list(dict.fromkeys(ent['grouped_type'])):
                     if tag == 'CHEMICAL':
                         if len(linked_ent['rxnorm']['cui']) > 0:
                             dict_to_add = linked_ent['rxnorm'].copy()

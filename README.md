@@ -109,8 +109,8 @@ that are contained in SciSpacy library. We provide our updated version of the sc
   - [NOTE 3] : In the implementation, we hypothesize that all the supported linkers are used. If this is not the case comment-out
                lines of code accordingly in the ```6_entity_linking_merge.py --date [--input_path]``` script and adjust also the 
                ```merge_linkers_scispacy``` function.
-  - [NOTE 4] : When the next character of an entity is not one of the following: " ", <, >, (, ), . (in the end of the sentence), then
-               expand the entity as far as the aforementioned restriction holds. For example, if a medication with the name <i>drug</i>
+  - [NOTE 4] : When an entity is attached to other characters, it is expanded backwards up to the previous space and forwards
+               up to the next space (or up to the full stop that ends the sentence). For example, if a medication with the name <i>drug</i>
                is detected and it is <i>drug4.2%</i> in the context, then the <i>drug</i> entity is expanded to <i>drug4.2%</i>.
 
 Please cite our work when using this software.

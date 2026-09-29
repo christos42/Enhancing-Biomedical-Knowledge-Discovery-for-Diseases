@@ -35,8 +35,10 @@ def get_cooccurrence_dict(data):
         for k2 in data[k1]:
             for i, ent1 in enumerate(data[k1][k2]['sampled_linked_entities']):
                 for j, ent2 in enumerate(data[k1][k2]['sampled_linked_entities'][i + 1:]):
-                    for i1, cui1 in enumerate(list(set(ent1['cui']))):
-                        for i2, cui2 in enumerate(list(set(ent2['cui']))):
+                    for cui1 in dict.fromkeys(ent1['cui']):
+                        i1 = ent1['cui'].index(cui1)
+                        for cui2 in dict.fromkeys(ent2['cui']):
+                            i2 = ent2['cui'].index(cui2)
                             if cui1 == cui2:
                                 continue
                             if cui1 + '_' + cui2 not in freq_pairs.keys() and cui2 + '_' + cui1 not in freq_pairs.keys():
@@ -65,7 +67,7 @@ def get_cooccurrence_narrow_dict(data):
         for k2 in data[k1]:
             for i, ent1 in enumerate(data[k1][k2]['sampled_linked_entities']):
                 for j, ent2 in enumerate(data[k1][k2]['sampled_linked_entities'][i + 1:]):
-                    if len(ent1['cui']) > 1 and len(ent2['cui']) > 1:
+                    if len(ent1['cui']) > 0 and len(ent2['cui']) > 0:
                         cui1 = ent1['cui'][0]
                         cui2 = ent2['cui'][0]
                         if cui1 == cui2:

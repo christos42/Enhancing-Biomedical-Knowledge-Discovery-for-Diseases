@@ -3,6 +3,7 @@ import Bio
 import numpy as np
 import collections
 import matplotlib.pyplot as plt
+from datetime import date
 
 
 class PubMed:
@@ -17,9 +18,9 @@ class PubMed:
     def get_start_end_dates(self):
         start_dates = []
         end_dates = []
-        for y in range(1900, 2023):
-            for m in range(1, 12):
-                start_dates.append(str(y) + '`/' + str(m))
+        for y in range(1900, date.today().year + 1):
+            for m in range(1, 13):
+                start_dates.append(str(y) + '/' + str(m))
                 end_dates.append(str(y) + '/' + str(m))
                 # end_dates.append(str(y) + '/' + str(m+1))
 
@@ -260,9 +261,9 @@ class PubMedDivide:
     def get_start_end_dates(self):
         start_dates = []
         end_dates = []
-        for y in range(1900, 2023):
-            for m in range(1, 12):
-                start_dates.append(str(y) + '`/' + str(m))
+        for y in range(1900, date.today().year + 1):
+            for m in range(1, 13):
+                start_dates.append(str(y) + '/' + str(m))
                 end_dates.append(str(y) + '/' + str(m))
                 # end_dates.append(str(y) + '/' + str(m+1))
 
