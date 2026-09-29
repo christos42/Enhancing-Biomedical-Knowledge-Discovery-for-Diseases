@@ -72,7 +72,8 @@ class DataProcess(Dataset):
         for r in entities_range:
             # +1 for [CLS]
             new_start = word_to_bert[r[0]][0] + 1
-            new_end = word_to_bert[r[1]][0] + 1
+            # Last sub-word of the entity's last word (there are no entity markers here)
+            new_end = word_to_bert[r[1]][1] + 1
             new_entities_range.append([new_start, new_end])
 
         return new_entities_range

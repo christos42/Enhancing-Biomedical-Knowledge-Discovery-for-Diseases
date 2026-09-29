@@ -39,7 +39,7 @@ This subdirectory consist of the supervised approaches of the study, presenting 
    - embed_mode (string): the backbone Language Model, "BiomedBERT_base", "BiomedBERT_large", "BioLinkBERT_base", 
      "BioLinkBERT_large", "BioGPT_base" and "BioGPT_large" are supported.
    - exp_setting (string): the experimental setting for the task (correlation detection): binary or multi_class
-   - eval_metric (string): micro or macro evaluation (f1-score)
+   - eval_metric (string): micro, macro or weighted evaluation (f1-score) for the multi_class setting
    - lr (float): the learning rate
    - weight_decay (float): weight decaying rate
    - seed (int): random seed initialization 

@@ -77,26 +77,16 @@ def evaluate(test_batch, loss_fn, args, test_or_dev):
                                 average='binary',
                                 zero_division=0.0)
         elif args.exp_setting == 'multi_class':
-            if args.eval_metric == "micro":
-                precision, recall, f1, _ = precision_recall_fscore_support(all_gold_labels,
-                                                                           all_predictions,
-                                                                           average='micro',
-                                                                           zero_division=0.0)
-                f_0_5 = fbeta_score(all_gold_labels,
-                                    all_predictions,
-                                    beta=0.5,
-                                    average='micro',
-                                    zero_division=0.0)
-            elif args.eval_metric == 'macro':
-                precision, recall, f1, _ = precision_recall_fscore_support(all_gold_labels,
-                                                                           all_predictions,
-                                                                           average='weighted',
-                                                                           zero_division=0.0)
-                f_0_5 = fbeta_score(all_gold_labels,
-                                    all_predictions,
-                                    beta=0.5,
-                                    average='weighted',
-                                    zero_division=0.0)
+            # eval_metric is the scikit-learn averaging: micro, macro or weighted
+            precision, recall, f1, _ = precision_recall_fscore_support(all_gold_labels,
+                                                                       all_predictions,
+                                                                       average=args.eval_metric,
+                                                                       zero_division=0.0)
+            f_0_5 = fbeta_score(all_gold_labels,
+                                all_predictions,
+                                beta=0.5,
+                                average=args.eval_metric,
+                                zero_division=0.0)
 
 
 
@@ -151,8 +141,8 @@ if __name__ == '__main__':
     parser.add_argument("--exp_setting", type=str, required=True, choices=["binary", "multi_class"],
                         help="the experimental setting for the task (relation detection): binary or multi_class")
 
-    parser.add_argument("--eval_metric", type=str, choices=["micro", "macro"],
-                        help="micro f1 or macro f1")
+    parser.add_argument("--eval_metric", type=str, choices=["micro", "macro", "weighted"],
+                        help="micro, macro or weighted f1 (weighted is what 'macro' computed before)")
 
     parser.add_argument("--lr", default=None, type=float,
                         help="initial learning rate")
@@ -315,7 +305,7 @@ if __name__ == '__main__':
                                                                                                                                                           test_precision,
                                                                                                                                                           test_recall,
                                                                                                                                                           test_f1,
-                                                                                                                                                          test_f_0_5_best))
+                                                                                                                                                          test_f_0_5))
 
 
         saved_file.save("best test results: precision: {:.4f} \t recall: {:.4f} \t f1: {:.4f}  \t f_0_5: {:.4f}".format(test_precision_best,

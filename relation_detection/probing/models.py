@@ -49,6 +49,7 @@ class LMREA(torch.nn.Module):
         input_ids = x['input_ids'].to(self.device)
         #x = self.model(**x)[0]
         x = self.model(input_ids = input_ids,
+                       attention_mask = x['attention_mask'],
                        output_attentions = True,
                        output_hidden_states = True)
 
@@ -178,6 +179,7 @@ class LMREA_proj(torch.nn.Module):
         input_ids = x['input_ids'].to(self.device)
         #x = self.model(**x)[0]
         x = self.model(input_ids = input_ids,
+                       attention_mask = x['attention_mask'],
                        output_attentions = True,
                        output_hidden_states = True)
 
@@ -305,6 +307,7 @@ class LMREM(torch.nn.Module):
         input_ids = x['input_ids'].to(self.device)
         # x = self.model(**x)[0]
         x = self.model(input_ids=input_ids,
+                       attention_mask=x['attention_mask'],
                        output_attentions=True,
                        output_hidden_states=True)
 
@@ -411,6 +414,7 @@ class LMREM_proj(torch.nn.Module):
         input_ids = x['input_ids'].to(self.device)
         # x = self.model(**x)[0]
         x = self.model(input_ids=input_ids,
+                       attention_mask=x['attention_mask'],
                        output_attentions=True,
                        output_hidden_states=True)
 
@@ -526,6 +530,7 @@ class LMRE_attention(torch.nn.Module):
         input_ids = x['input_ids'].to(self.device)
         #x = self.model(**x)[0]
         x = self.model(input_ids = input_ids,
+                       attention_mask = x['attention_mask'],
                        output_attentions = True,
                        output_hidden_states = True)
 

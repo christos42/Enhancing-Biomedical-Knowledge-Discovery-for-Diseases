@@ -24,7 +24,8 @@ class DataProcess(Dataset):
         self.data = data
         self.embed_mode = embed_mode
         if embed_mode == 'BiomedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
+            # Same checkpoint as the model, so that the sub-word offsets match its tokenization
+            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract")
             # Add the special tokens [ent] & [/ent] in the vocabulary
             self.tokenizer.add_tokens(['[ent]'])
             self.tokenizer.add_tokens(['[/ent]'])

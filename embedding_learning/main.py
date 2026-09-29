@@ -272,7 +272,7 @@ if __name__ == '__main__':
                                                                                                                                                           test_precision,
                                                                                                                                                           test_recall,
                                                                                                                                                           test_f1,
-                                                                                                                                                          test_f_0_5_best))
+                                                                                                                                                          test_f_0_5))
 
 
         saved_file.save("best test results: precision: {:.4f} \t recall: {:.4f} \t f1: {:.4f}  \t f_0_5: {:.4f}".format(test_precision_best,

@@ -32,7 +32,7 @@
    - eval_batch_size (int): the batch size for the evaluation session
    - embed_mode (string): the backbone Language Model, "PubMedBERT_base" and "PubMedBERT_large" are supported.
    - exp_setting (string): the experimental setting for the task (correlation detection): binary or multi_class
-   - eval_metric (string): micro or macro evaluation (f1-score)
+   - eval_metric (string): micro, macro or weighted evaluation (f1-score) for the multi_class setting
    - lr (float): the learning rate
    - weight_decay (float): weight decaying rate
    - seed (int): random seed initialization 
