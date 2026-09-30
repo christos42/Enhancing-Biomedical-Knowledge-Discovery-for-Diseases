@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import os
@@ -7,6 +9,7 @@ import torch
 from sklearn.metrics import fbeta_score, precision_recall_fscore_support
 from torch.nn import CosineEmbeddingLoss, CosineSimilarity
 from torch.optim import Adam
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from dataloader import dataloader
@@ -23,8 +26,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def evaluate(test_batch, loss_fn, cos_sim, args, test_or_dev):
-    steps, test_loss = 0, 0
+def evaluate(
+    test_batch: DataLoader,
+    loss_fn: torch.nn.Module,
+    cos_sim: torch.nn.Module,
+    args: argparse.Namespace,
+    test_or_dev: str,
+) -> tuple[float, float, float, float, torch.Tensor | float]:
+    steps = 0
+    test_loss: torch.Tensor | float = 0
     all_predictions, all_gold_labels = [], []
 
     with torch.no_grad():
@@ -269,7 +279,7 @@ if __name__ == "__main__":
     if args.do_train:
         logger.info("------Training------")
         if args.model_id == 1:
-            model = LaMEL(args, device)
+            model: torch.nn.Module = LaMEL(args, device)
         elif args.model_id == 2:
             model = LaMELInter(args, device)
 
@@ -280,7 +290,7 @@ if __name__ == "__main__":
         loss_fn = CosineEmbeddingLoss(margin=args.margin)
         cos_sim = CosineSimilarity(dim=1)
 
-        best_result = 0
+        best_result: float = 0
         test_precision_best = None
         test_recall_best = None
         test_f1_best = None

@@ -1,11 +1,18 @@
 """Code shared by the relation detection, probing and embedding learning experiments."""
 
+from __future__ import annotations
+
 import os
 import random
 
 import numpy as np
 import torch
-from transformers import AutoModel, AutoTokenizer
+from transformers import (
+    AutoModel,
+    AutoTokenizer,
+    PreTrainedModel,
+    PreTrainedTokenizerBase,
+)
 
 # Hugging Face checkpoint and hidden size of each backbone (--embed_mode)
 BACKBONES = {
@@ -27,7 +34,7 @@ PROBING_BACKBONES = {
 }
 
 
-def load_tokenizer_with_markers(embed_mode):
+def load_tokenizer_with_markers(embed_mode: str) -> PreTrainedTokenizerBase:
     """The backbone's tokenizer, with the markers [ent] and [/ent] in its vocabulary."""
     tokenizer = AutoTokenizer.from_pretrained(BACKBONES[embed_mode][0])
     tokenizer.add_tokens(["[ent]"])
@@ -35,7 +42,9 @@ def load_tokenizer_with_markers(embed_mode):
     return tokenizer
 
 
-def load_backbone_with_markers(embed_mode):
+def load_backbone_with_markers(
+    embed_mode: str,
+) -> tuple[PreTrainedTokenizerBase, PreTrainedModel, int]:
     """The backbone's tokenizer and language model, and its hidden size.
 
     The embeddings of the added [ent] and [/ent] tokens are initialized randomly (using
@@ -72,7 +81,9 @@ def load_backbone_with_markers(embed_mode):
     return tokenizer, model, hidden_size
 
 
-def load_frozen_backbone(embed_mode):
+def load_frozen_backbone(
+    embed_mode: str,
+) -> tuple[PreTrainedTokenizerBase, PreTrainedModel, int]:
     """A probing backbone's tokenizer, its language model (all layers frozen) and its
     hidden size."""
     checkpoint, hidden_size = PROBING_BACKBONES[embed_mode]
@@ -85,7 +96,9 @@ def load_frozen_backbone(embed_mode):
     return tokenizer, model, hidden_size
 
 
-def inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2):
+def inter_representation(
+    r1: torch.Tensor, start_ent_1: int, end_ent_1: int, start_ent_2: int, end_ent_2: int
+) -> torch.Tensor:
     """Mean representation of the tokens between the two entities.
 
     When nothing is between them (adjacent or overlapping entities), the mean of their
@@ -101,7 +114,12 @@ def inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2):
     return torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
 
 
-def atlop_context_vector(attentions, r1, head_span, tail_span):
+def atlop_context_vector(
+    attentions: torch.Tensor,
+    r1: torch.Tensor,
+    head_span: tuple[int, int],
+    tail_span: tuple[int, int],
+) -> torch.Tensor:
     """ATLOP-style context vector of an entity pair.
 
     attentions: one example's attention scores of a layer (heads x tokens x tokens);
@@ -126,11 +144,11 @@ def atlop_context_vector(attentions, r1, head_span, tail_span):
 
 
 class CV:
-    def __init__(self, keys, k):
+    def __init__(self, keys: list[str], k: int) -> None:
         self.keys = keys
         self.k = k
 
-    def get_cv_splits(self, fold):
+    def get_cv_splits(self, fold: int) -> tuple[list[str], list[str]]:
         splits = []
         step = len(self.keys) // self.k
         for i in range(0, self.k * step, step):
@@ -147,14 +165,14 @@ class CV:
                 train_keys += s
         return train_keys, test_keys
 
-    def get_unique_sentences(self):
+    def get_unique_sentences(self) -> list[str]:
         sentences = []
         for k in self.keys:
             if "_".join(k.split("_")[:2]) not in sentences:
                 sentences.append("_".join(k.split("_")[:2]))
         return sentences
 
-    def get_cv_splits_sentence_wise(self, fold):
+    def get_cv_splits_sentence_wise(self, fold: int) -> tuple[list[str], list[str]]:
         sentences = self.get_unique_sentences()
         splits = []
         step = len(sentences) // self.k
@@ -182,7 +200,7 @@ class CV:
 
 
 class SaveResults:
-    def __init__(self, filename, header=None):
+    def __init__(self, filename: str, header: str | None = None) -> None:
         self.filename = filename
         if os.path.exists(filename):
             os.remove(filename)
@@ -191,12 +209,12 @@ class SaveResults:
             with open(filename, "w") as out:
                 print(header, file=out)
 
-    def save(self, info):
+    def save(self, info: str) -> None:
         with open(self.filename, "a") as out:
             print(info, file=out)
 
 
-def set_seed(seed):
+def set_seed(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)

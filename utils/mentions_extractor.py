@@ -1,17 +1,24 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 import scispacy  # noqa: F401 (registers SciSpacy's spaCy components)
 import spacy
 from scispacy.linking import EntityLinker  # noqa: F401 (registers "scispacy_linker")
 
+if TYPE_CHECKING:
+    from spacy.language import Language
+    from spacy.tokens import Span
+
 
 class MentionsExtractorSciSpacy:
-    def __init__(self, type, linker_type):
+    def __init__(self, type: str, linker_type: str) -> None:
         self.type = type
         self.linker_type = linker_type
         self.nlp = self.load_nlp_model()
         self.linker = self.nlp.get_pipe("scispacy_linker")
 
-    def load_nlp_model(self):
-        flag = 0
+    def load_nlp_model(self) -> Language:
         if self.type == "craft":
             nlp = spacy.load("en_ner_craft_md")
         elif self.type == "bc5cdr":
@@ -21,100 +28,98 @@ class MentionsExtractorSciSpacy:
         elif self.type == "bionlp13cg":
             nlp = spacy.load("en_ner_bionlp13cg_md")
         else:
-            flag = 1
-            print(
+            raise ValueError(
                 "Unknown type given. Supported pipelines: "
                 "craft, bc5cdr, jnlpba, bionlp13cg"
             )
 
-        if flag == 0:
-            # Add the linkers
-            if self.linker_type == "umls":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "umls",
-                        "threshold": 0.9,
-                    },
-                )
-            elif self.linker_type == "mesh":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "mesh",
-                        "threshold": 0.9,
-                    },
-                )
-            elif self.linker_type == "rxnorm":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "rxnorm",
-                        "threshold": 0.9,
-                    },
-                )
-            elif self.linker_type == "go":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "go",
-                        "threshold": 0.9,
-                    },
-                )
-            elif self.linker_type == "hpo":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "hpo",
-                        "threshold": 0.9,
-                    },
-                )
-            elif self.linker_type == "drugbank":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "drugbank",
-                        "threshold": 0.9,
-                    },
-                )
-            elif self.linker_type == "gs":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "gs",
-                        "threshold": 0.9,
-                    },
-                )
-            elif self.linker_type == "ncbi":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "ncbi",
-                        "threshold": 0.9,
-                    },
-                )
-            elif self.linker_type == "snomed":
-                nlp.add_pipe(
-                    "scispacy_linker",
-                    config={
-                        "resolve_abbreviations": False,
-                        "linker_name": "snomed",
-                        "threshold": 0.9,
-                    },
-                )
+        # Add the linkers
+        if self.linker_type == "umls":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "umls",
+                    "threshold": 0.9,
+                },
+            )
+        elif self.linker_type == "mesh":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "mesh",
+                    "threshold": 0.9,
+                },
+            )
+        elif self.linker_type == "rxnorm":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "rxnorm",
+                    "threshold": 0.9,
+                },
+            )
+        elif self.linker_type == "go":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "go",
+                    "threshold": 0.9,
+                },
+            )
+        elif self.linker_type == "hpo":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "hpo",
+                    "threshold": 0.9,
+                },
+            )
+        elif self.linker_type == "drugbank":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "drugbank",
+                    "threshold": 0.9,
+                },
+            )
+        elif self.linker_type == "gs":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "gs",
+                    "threshold": 0.9,
+                },
+            )
+        elif self.linker_type == "ncbi":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "ncbi",
+                    "threshold": 0.9,
+                },
+            )
+        elif self.linker_type == "snomed":
+            nlp.add_pipe(
+                "scispacy_linker",
+                config={
+                    "resolve_abbreviations": False,
+                    "linker_name": "snomed",
+                    "threshold": 0.9,
+                },
+            )
 
-            return nlp
+        return nlp
 
-    def extract_entities_pos_tags(self, data):
-        info = {id_: {} for id_ in data}
+    def extract_entities_pos_tags(self, data: dict[str, Any]) -> dict[str, Any]:
+        info: dict[str, dict[str, Any]] = {id_: {} for id_ in data}
         # Stream all sentences through nlp.pipe in batches (same documents as calling
         # self.nlp per sentence)
         sentences = (
@@ -150,7 +155,9 @@ class MentionsExtractorSciSpacy:
 
         return info
 
-    def get_expanded_entity_linking(self, entity):
+    def get_expanded_entity_linking(
+        self, entity: Span
+    ) -> dict[str, dict[str, list[Any]]]:
         linked_info = {}
         cui_l, name_l, aliases_l, tui_l, descr_l, prob_l = self.get_entity_linking(
             entity
@@ -165,7 +172,7 @@ class MentionsExtractorSciSpacy:
         }
         return linked_info
 
-    def get_entity_linking(self, entity):
+    def get_entity_linking(self, entity: Span) -> tuple[list[Any], ...]:
         cui_l, name_l, aliases_l, tui_l, descr_l, prob_l = [], [], [], [], [], []
         for code_ent in entity._.kb_ents:
             cui_, name_, aliases_, tui_, descr_ = self.linker.kb.cui_to_entity[
@@ -179,7 +186,9 @@ class MentionsExtractorSciSpacy:
             prob_l.append(code_ent[1])
         return cui_l, name_l, aliases_l, tui_l, descr_l, prob_l
 
-    def find_unique_entities(self, ent_l, linked_l):
+    def find_unique_entities(
+        self, ent_l: list[tuple[Any, ...]], linked_l: list[dict[str, Any]]
+    ) -> tuple[list[tuple[Any, ...]], list[dict[str, Any]]]:
         ent_l_unique, linked_l_unique, checked = [], [], []
         for i, en in enumerate(ent_l):
             if (en[0], en[1]) in checked:

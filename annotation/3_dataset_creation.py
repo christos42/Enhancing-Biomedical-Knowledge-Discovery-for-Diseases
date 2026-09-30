@@ -1,14 +1,21 @@
+from __future__ import annotations
+
 import argparse
 import os
 import sys
+from typing import Any
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "utils"))
 from utils import find_json_files, read_json, save_json
 
 
-def create_dataset(annotations, data_entities, abstracts):
+def create_dataset(
+    annotations: dict[str, Any],
+    data_entities: dict[str, Any],
+    abstracts: dict[str, Any],
+) -> dict[str, Any]:
     dataset = {}
-    count_rec_per_sent = {}
+    count_rec_per_sent: dict[str, int] = {}
     for k1 in annotations:
         # Skip the pair that was still being annotated when the file was saved
         if "relation" not in annotations[k1] or "useful text" not in annotations[k1]:
@@ -72,6 +79,6 @@ if __name__ == "__main__":
 
     for f in annotations_files:
         c = f.split(".")[0].split("_")[-1]
-        annotations = read_json(f)
-        dataset = create_dataset(annotations, data_entities, abstracts)
+        file_annotations = read_json(f)
+        dataset = create_dataset(file_annotations, data_entities, abstracts)
         save_json(dataset, output_folder + "dataset_" + c + ".json")

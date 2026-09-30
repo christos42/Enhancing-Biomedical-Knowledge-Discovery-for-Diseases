@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import argparse
 import os
 import sys
 
@@ -8,7 +11,7 @@ from utils.training_utils import atlop_context_vector, load_frozen_backbone
 
 
 class LMREA(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -29,24 +32,26 @@ class LMREA(torch.nn.Module):
             classification_input_size, classification_output_size
         )
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> torch.Tensor:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        input_ids = x["input_ids"].to(self.device)
+        input_ids = inputs["input_ids"].to(self.device)
         # x = self.model(**x)[0]
-        x = self.model(
+        outputs = self.model(
             input_ids=input_ids,
-            attention_mask=x["attention_mask"],
+            attention_mask=inputs["attention_mask"],
             output_attentions=True,
             output_hidden_states=True,
         )
 
-        hidden_states = x[2][1:]
+        hidden_states = outputs[2][1:]
 
         rel_representations = []
         for i, r1 in enumerate(hidden_states[self.args.encoding_layer]):
@@ -62,7 +67,7 @@ class LMREA(torch.nn.Module):
                 rel_representations.append(final_rep)
             elif self.args.aggregation == "atlop_context_vector":
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][self.args.encoding_layer][i],
+                    outputs["attentions"][self.args.encoding_layer][i],
                     r1,
                     (start_ent_1, end_ent_1),
                     (start_ent_2, end_ent_2),
@@ -78,7 +83,7 @@ class LMREA(torch.nn.Module):
                 rel_representations.append(final_rep)
             elif self.args.aggregation == "atlop_context_vector_only":
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][self.args.encoding_layer][i],
+                    outputs["attentions"][self.args.encoding_layer][i],
                     r1,
                     (start_ent_1, end_ent_1),
                     (start_ent_2, end_ent_2),
@@ -98,7 +103,7 @@ class LMREA(torch.nn.Module):
 
 
 class LMREAProj(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -128,24 +133,26 @@ class LMREAProj(torch.nn.Module):
             classification_input_size, classification_output_size
         )
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> torch.Tensor:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        input_ids = x["input_ids"].to(self.device)
+        input_ids = inputs["input_ids"].to(self.device)
         # x = self.model(**x)[0]
-        x = self.model(
+        outputs = self.model(
             input_ids=input_ids,
-            attention_mask=x["attention_mask"],
+            attention_mask=inputs["attention_mask"],
             output_attentions=True,
             output_hidden_states=True,
         )
 
-        hidden_states = x[2][1:]
+        hidden_states = outputs[2][1:]
 
         rel_representations = []
         for i, r1 in enumerate(hidden_states[self.args.encoding_layer]):
@@ -166,7 +173,7 @@ class LMREAProj(torch.nn.Module):
                 rel_representations.append(final_rep)
             elif self.args.aggregation == "atlop_context_vector":
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][self.args.encoding_layer][i],
+                    outputs["attentions"][self.args.encoding_layer][i],
                     r1,
                     (start_ent_1, end_ent_1),
                     (start_ent_2, end_ent_2),
@@ -186,7 +193,7 @@ class LMREAProj(torch.nn.Module):
                 rel_representations.append(final_rep)
             elif self.args.aggregation == "atlop_context_vector_only":
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][self.args.encoding_layer][i],
+                    outputs["attentions"][self.args.encoding_layer][i],
                     r1,
                     (start_ent_1, end_ent_1),
                     (start_ent_2, end_ent_2),
@@ -207,7 +214,7 @@ class LMREAProj(torch.nn.Module):
 
 
 class LMREM(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -228,24 +235,26 @@ class LMREM(torch.nn.Module):
             classification_input_size, classification_output_size
         )
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> torch.Tensor:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        input_ids = x["input_ids"].to(self.device)
+        input_ids = inputs["input_ids"].to(self.device)
         # x = self.model(**x)[0]
-        x = self.model(
+        outputs = self.model(
             input_ids=input_ids,
-            attention_mask=x["attention_mask"],
+            attention_mask=inputs["attention_mask"],
             output_attentions=True,
             output_hidden_states=True,
         )
 
-        hidden_states = x[2][1:]
+        hidden_states = outputs[2][1:]
 
         rel_representations = []
         for i, r1 in enumerate(hidden_states[self.args.encoding_layer]):
@@ -261,7 +270,7 @@ class LMREM(torch.nn.Module):
                 rel_representations.append(m_ent)
             elif self.args.aggregation == "atlop_context_vector":
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][self.args.encoding_layer][i],
+                    outputs["attentions"][self.args.encoding_layer][i],
                     r1,
                     (start_ent_1, end_ent_1),
                     (start_ent_2, end_ent_2),
@@ -287,7 +296,7 @@ class LMREM(torch.nn.Module):
 
 
 class LMREMProj(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -317,24 +326,26 @@ class LMREMProj(torch.nn.Module):
             classification_input_size, classification_output_size
         )
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> torch.Tensor:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        input_ids = x["input_ids"].to(self.device)
+        input_ids = inputs["input_ids"].to(self.device)
         # x = self.model(**x)[0]
-        x = self.model(
+        outputs = self.model(
             input_ids=input_ids,
-            attention_mask=x["attention_mask"],
+            attention_mask=inputs["attention_mask"],
             output_attentions=True,
             output_hidden_states=True,
         )
 
-        hidden_states = x[2][1:]
+        hidden_states = outputs[2][1:]
 
         rel_representations = []
         for i, r1 in enumerate(hidden_states[self.args.encoding_layer]):
@@ -352,7 +363,7 @@ class LMREMProj(torch.nn.Module):
                 rel_representations.append(m_ent)
             elif self.args.aggregation == "atlop_context_vector":
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][self.args.encoding_layer][i],
+                    outputs["attentions"][self.args.encoding_layer][i],
                     r1,
                     (start_ent_1, end_ent_1),
                     (start_ent_2, end_ent_2),
@@ -382,7 +393,7 @@ class LMREMProj(torch.nn.Module):
 
 
 class LMREAttention(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -416,24 +427,26 @@ class LMREAttention(torch.nn.Module):
             classification_input_size, classification_output_size
         )
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> torch.Tensor:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        input_ids = x["input_ids"].to(self.device)
+        input_ids = inputs["input_ids"].to(self.device)
         # x = self.model(**x)[0]
-        x = self.model(
+        outputs = self.model(
             input_ids=input_ids,
-            attention_mask=x["attention_mask"],
+            attention_mask=inputs["attention_mask"],
             output_attentions=True,
             output_hidden_states=True,
         )
 
-        hidden_states = x[2][1:]
+        hidden_states = outputs[2][1:]
 
         rel_representations = []
         for i, _ in enumerate(hidden_states[-1]):
@@ -443,7 +456,7 @@ class LMREAttention(torch.nn.Module):
             end_ent_2 = entities_range[i][1][1]
             if self.args.aggregation == "layer_specific":
                 # extract attentions from the model output
-                attentions = x["attentions"][self.args.encoding_layer][i]
+                attentions = outputs["attentions"][self.args.encoding_layer][i]
 
                 # extract attentions of the two entities and sequence
                 ent_1_attentions = torch.mean(
@@ -473,7 +486,7 @@ class LMREAttention(torch.nn.Module):
                 # x['attentions']: Tuple of torch.FloatTensor (one for each layer) of
                 # shape (batch_size, num_heads, sequence_length, sequence_length)
                 attentions = []
-                for layer_attentions in x["attentions"]:
+                for layer_attentions in outputs["attentions"]:
                     attentions.append(
                         torch.squeeze(layer_attentions[i][self.args.attention_head], 0)
                     )
@@ -507,7 +520,7 @@ class LMREAttention(torch.nn.Module):
                 # extract attentions of every layer and attention head from the model
                 # output
                 attentions = []
-                for layer_attentions in x["attentions"]:
+                for layer_attentions in outputs["attentions"]:
                     attentions.append(layer_attentions[i])
 
                 attentions_tensor = torch.stack(attentions, 0)

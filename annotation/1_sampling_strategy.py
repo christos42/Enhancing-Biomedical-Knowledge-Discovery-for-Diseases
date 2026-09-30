@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import argparse
 import os
 import random
 import sys
+from typing import Any
 
 import numpy as np
 
@@ -10,12 +13,12 @@ from utils import read_json, save_json
 
 
 # function that creates random sample
-def random_sampling(ids, n):
+def random_sampling(ids: list[str], n: int) -> np.ndarray:
     random_sample = np.random.choice(ids, replace=False, size=n)
     return random_sample
 
 
-def weighted_random_sampling(ids, prob, n):
+def weighted_random_sampling(ids: list[str], prob: list[float], n: int) -> list[str]:
     random_sample = rng.choice(ids, replace=False, size=n, p=prob, shuffle=False)
     return list(random_sample)
 
@@ -82,7 +85,7 @@ if __name__ == "__main__":
             sampled_ids.append(k1)
     print("Find ids with atleast 2 mapped entities: DONE")
 
-    freq_pairs_per_sent = {}
+    freq_pairs_per_sent: dict[str, dict[str, Any]] = {}
     for s in sampled_ids:
         ent_info = data_entities[s]
         cuis = []
@@ -243,8 +246,8 @@ if __name__ == "__main__":
         sampled_ids = []
         step = 50
         while len(concept_pairs_to_be_sampled) >= args.n_conc:
-            b1 = random_sampling(concept_pairs_to_be_sampled, args.n_conc)
-            for k in b1:
+            sampled_pairs = random_sampling(concept_pairs_to_be_sampled, args.n_conc)
+            for k in sampled_pairs:
                 for id_ in cooc[k]["sentence_ids"]:
                     if id_ not in all_sampled_ids:
                         all_sampled_ids.append(id_)

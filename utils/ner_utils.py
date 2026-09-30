@@ -1,19 +1,26 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from spacy import displacy
 
+if TYPE_CHECKING:
+    from spacy.language import Language
 
-def display_ner(nlp, sent):
+
+def display_ner(nlp: Language, sent: str) -> None:
     doc = nlp(sent)
     displacy.serve(doc, style="ent")
 
 
-def find_similarity(nlp, en1, en2):
+def find_similarity(nlp: Language, en1: str, en2: str) -> float:
     # word2vec based
     doc1 = nlp(en1)
     doc2 = nlp(en2)
     return doc1.similarity(doc2)
 
 
-def union_lists(l1, l2):
+def union_lists(l1: list[Any], l2: list[Any]) -> list[Any]:
     union = []
     for it in l1:
         if it not in union:
@@ -25,7 +32,9 @@ def union_lists(l1, l2):
     return union
 
 
-def union_lists_pairs(l1, l2, l3, l4):
+def union_lists_pairs(
+    l1: list[Any], l2: list[Any], l3: list[Any], l4: list[Any]
+) -> tuple[list[Any], list[Any]]:
     l_un_1, l_un_2 = [], []
     for i, it in enumerate(l1):
         if it not in l_un_1:
@@ -39,8 +48,10 @@ def union_lists_pairs(l1, l2, l3, l4):
     return l_un_1, l_un_2
 
 
-def merge_entity_pos_tags_dicts(dict1, dict2):
-    dict_ = {}
+def merge_entity_pos_tags_dicts(
+    dict1: dict[str, Any], dict2: dict[str, Any]
+) -> dict[str, Any]:
+    dict_: dict[str, Any] = {}
     for k1 in dict1:
         dict_[k1] = {}
         for k2 in dict1[k1]:
@@ -75,9 +86,17 @@ def merge_entity_pos_tags_dicts(dict1, dict2):
 
 
 def merge_linkers_scispacy(
-    d_umls, d_mesh, d_rxnorm, d_go, d_hpo, d_drugbank, d_gs, d_ncbi, d_snomed
-):
-    d_merged = {}
+    d_umls: dict[str, Any],
+    d_mesh: dict[str, Any],
+    d_rxnorm: dict[str, Any],
+    d_go: dict[str, Any],
+    d_hpo: dict[str, Any],
+    d_drugbank: dict[str, Any],
+    d_gs: dict[str, Any],
+    d_ncbi: dict[str, Any],
+    d_snomed: dict[str, Any],
+) -> dict[str, Any]:
+    d_merged: dict[str, Any] = {}
     for k1 in d_umls:
         d_merged[k1] = {}
         for k2 in d_umls[k1]:
@@ -116,7 +135,7 @@ def merge_linkers_scispacy(
     return d_merged
 
 
-def get_grouped_ne_tag_scispacy(tag):
+def get_grouped_ne_tag_scispacy(tag: str) -> str:
     tag_grouping = {
         "CHEMICAL": ["CHEBI", "CHEMICAL", "SIMPLE_CHEMICAL"],
         "CELL": ["CL", "CELL_TYPE", "CELL_LINE", "CELL"],
@@ -138,8 +157,8 @@ def get_grouped_ne_tag_scispacy(tag):
     return tag
 
 
-def merge_same_entities_scispacy(data):
-    data_entity_merging = {}
+def merge_same_entities_scispacy(data: dict[str, Any]) -> dict[str, Any]:
+    data_entity_merging: dict[str, Any] = {}
     for k1 in data:
         data_entity_merging[k1] = {}
         for k2 in data[k1]:

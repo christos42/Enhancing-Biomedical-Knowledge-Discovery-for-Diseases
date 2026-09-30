@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import argparse
+from typing import Any
 
 from utils.utils import find_json_files, read_json, save_json
 
@@ -59,7 +62,7 @@ LINKER_PRIORITY = {
 }
 
 
-def sampling_linking_codes_strategy(data_merged):
+def sampling_linking_codes_strategy(data_merged: dict[str, Any]) -> dict[str, Any]:
     data_merged_upd = data_merged.copy()
     for k1 in data_merged_upd:
         for k2 in data_merged_upd[k1]:
@@ -67,7 +70,7 @@ def sampling_linking_codes_strategy(data_merged):
             for i, ent in enumerate(data_merged_upd[k1][k2]["entities"]):
                 sampled_linked_ent = []
                 linked_ent = data_merged_upd[k1][k2]["linked_entities"][i]
-                sampled_linked_ent_sub = {
+                sampled_linked_ent_sub: dict[str, list[Any]] = {
                     "cui": [],
                     "name": [],
                     "alias": [],

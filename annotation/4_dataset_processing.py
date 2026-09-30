@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import argparse
 import os
 import sys
+from typing import Any
 
 import numpy as np
 
@@ -15,7 +18,7 @@ nlp = spacy.load("en_core_sci_scibert")
 tokenizer = nlp.tokenizer
 
 
-def tokenize_and_extract_spans(sentence):
+def tokenize_and_extract_spans(sentence: str) -> tuple[list[str], list[list[int]]]:
     # tokens = word_tokenize(sentence)
     tokens_obj = tokenizer(sentence)
     tokens = []
@@ -25,7 +28,7 @@ def tokenize_and_extract_spans(sentence):
     for i in range(len(tokens)):
         if tokens[i] == "``" or tokens[i] == "''":
             tokens[i] = '"'
-    spans = []
+    spans: list[list[Any]] = []
     for w in tokens:
         if len(spans) == 0:
             spans.append(list(np.arange(0, len(w) + 1)))
@@ -40,19 +43,19 @@ def tokenize_and_extract_spans(sentence):
     return tokens, spans
 
 
-def get_chunk(pos):
+def get_chunk(pos: str) -> tuple[int, int]:
     start = int(pos.split("/")[0]) - 1
     stop = start + int(pos.split("/")[1])
     return start, stop
 
 
-def get_range(pos):
+def get_range(pos: str) -> list[int]:
     start = int(pos.split("/")[0]) - 1
     stop = start + int(pos.split("/")[1])
     return list(np.arange(start, stop + 1))
 
 
-def find_start_end_token(position, spans):
+def find_start_end_token(position: str, spans: list[list[int]]) -> list[int]:
     start, end = get_chunk(position)
     flag_start, flag_end = 0, 0
     for i, s in enumerate(spans):
@@ -77,7 +80,7 @@ def find_start_end_token(position, spans):
     return [start_ent, end_ent]
 
 
-def add_special_tokens_1(tokens, ranges):
+def add_special_tokens_1(tokens: list[str], ranges: list[list[int]]) -> list[str]:
     tokens_updated = []
     ent_1_start, ent_1_end = ranges[0][0], ranges[0][1]
     ent_2_start, ent_2_end = ranges[1][0], ranges[1][1]
@@ -105,7 +108,7 @@ def add_special_tokens_1(tokens, ranges):
     return tokens_updated
 
 
-def add_special_tokens_2(tokens, ranges):
+def add_special_tokens_2(tokens: list[str], ranges: list[list[int]]) -> list[str]:
     tokens_updated = []
     ent_1_start, ent_1_end = ranges[0][0], ranges[0][1]
     ent_2_start, ent_2_end = ranges[1][0], ranges[1][1]
@@ -133,7 +136,7 @@ def add_special_tokens_2(tokens, ranges):
     return tokens_updated
 
 
-def update_the_ranges(ranges):
+def update_the_ranges(ranges: list[list[int]]) -> list[list[int]]:
     ent_1_start, ent_1_end = ranges[0][0], ranges[0][1]
     ent_2_start, ent_2_end = ranges[1][0], ranges[1][1]
     if ent_1_start < ent_2_start:

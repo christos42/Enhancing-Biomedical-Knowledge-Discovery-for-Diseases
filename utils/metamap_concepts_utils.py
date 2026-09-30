@@ -1,4 +1,12 @@
-def get_entities(d):
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+
+def get_entities(d: pd.DataFrame) -> dict[str, dict[str, Any]]:
     entities = {}
     for r in d.itertuples():
         if r.score < 0.4:
@@ -18,13 +26,15 @@ def get_entities(d):
     return entities
 
 
-def get_chunk(pos):
+def get_chunk(pos: str) -> list[int]:
     start = int(pos.split("/")[0]) - 1
     stop = start + int(pos.split("/")[1])
     return [start, stop]
 
 
-def merge_sequent_entities(en1, en2, chunk1, chunk2):
+def merge_sequent_entities(
+    en1: dict[str, Any], en2: dict[str, Any], chunk1: list[int], chunk2: list[int]
+) -> dict[str, Any]:
     m_ent = {
         "preferred_name": en1["preferred_name"] + "||" + en2["preferred_name"],
         "cui": "||".join(
@@ -48,8 +58,10 @@ def merge_sequent_entities(en1, en2, chunk1, chunk2):
     return m_ent
 
 
-def detect_overlaps(positions, d_):
-    overlaps = []
+def detect_overlaps(
+    positions: list[str], d_: dict[str, dict[str, Any]]
+) -> list[list[int]]:
+    overlaps: list[list[int]] = []
     for i1, p1 in enumerate(positions):
         for i2, p2 in enumerate(positions):
             if i1 == i2:
@@ -76,7 +88,9 @@ def detect_overlaps(positions, d_):
     return overlaps
 
 
-def resolve_overlaps(positions, d_, overlaps):
+def resolve_overlaps(
+    positions: list[str], d_: dict[str, dict[str, Any]], overlaps: list[list[int]]
+) -> list[str]:
     keys_to_remove = []
     for o in overlaps:
         p1 = positions[o[0]]
@@ -127,7 +141,9 @@ def resolve_overlaps(positions, d_, overlaps):
     return keys_to_remove
 
 
-def resolve_overlaps_with_expansion(positions, d_):
+def resolve_overlaps_with_expansion(
+    positions: list[str], d_: dict[str, dict[str, Any]]
+) -> tuple[list[list[str]], list[dict[str, Any]]]:
     merged_entities = []
     keys_to_remove = []
     for i1, p1 in enumerate(positions):
@@ -151,7 +167,7 @@ def resolve_overlaps_with_expansion(positions, d_):
     return keys_to_remove, merged_entities
 
 
-def check_expansion(position, sentence):
+def check_expansion(position: str, sentence: str) -> tuple[int, str]:
     p_start, p_stop = get_chunk(position)
     # Index of the last character of the expanded entity (the end of the sentence if no
     # boundary follows)
@@ -185,7 +201,9 @@ def check_expansion(position, sentence):
     return update, new_position
 
 
-def expand_entities(entities, sentence):
+def expand_entities(
+    entities: dict[str, dict[str, Any]], sentence: str
+) -> dict[str, dict[str, Any]]:
     updated_dict = {}
     for k in entities:
         update, new_position = check_expansion(k, sentence)

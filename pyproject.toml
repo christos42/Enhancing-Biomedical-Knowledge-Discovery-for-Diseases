@@ -15,4 +15,18 @@ select = [
     "I",       # import order (PEP 8)
     "N",       # naming (PEP 8)
     "UP",      # modern syntax for the target Python version
+    "ANN",     # type annotations (PEP 484)
 ]
+ignore = [
+    "ANN401",  # the JSON data structures are dynamic, so typing.Any is intended
+]
+
+# Type check each part on its own, since the experiments reuse module names (main.py, ...):
+#   mypy --explicit-package-bases [0-9]*.py utils
+#   cd annotation && MYPYPATH=../utils mypy *.py
+#   cd relation_detection && MYPYPATH=.. mypy *.py
+#   cd relation_detection/probing && MYPYPATH=../.. mypy *.py
+#   cd embedding_learning && MYPYPATH=.. mypy *.py
+[tool.mypy]
+disallow_untyped_defs = true
+ignore_missing_imports = true

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import os
 import sys
@@ -84,7 +86,7 @@ if "sentences_to_be_removed" not in state:
     state.sentences_to_be_removed = []
 
 
-def annotation_accumulation(flag, label):
+def annotation_accumulation(flag: str, label: str) -> None:
     if flag == "1":
         state.annotations[state.current_sentence_id]["relation"] = label
     elif flag == "2":
@@ -106,7 +108,7 @@ def annotation_accumulation(flag, label):
             }
 
 
-def remove_entity(entity_index):
+def remove_entity(entity_index: str) -> None:
     sentence_id = "_".join(state.current_sentence_id.split("_")[:2])
     if sentence_id not in state.entities_to_be_removed.keys():
         state.entities_to_be_removed[sentence_id] = [entity_index]
@@ -136,7 +138,7 @@ def remove_entity(entity_index):
         }
 
 
-def remove_sentence(sentence_id_r):
+def remove_sentence(sentence_id_r: str) -> None:
     state.sentences_to_be_removed.append(sentence_id_r)
     pairs_to_remove = []
     for id_ in state.sentence_ids:

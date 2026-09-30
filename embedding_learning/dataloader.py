@@ -1,6 +1,11 @@
+from __future__ import annotations
+
+import argparse
 import os
 import random
 import sys
+from collections.abc import Iterable
+from typing import Any
 
 from torch.utils.data import DataLoader, Dataset
 
@@ -10,10 +15,12 @@ from utils.utils import read_json
 
 
 class Collater:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def __call__(self, data):
+    def __call__(
+        self, data: list[tuple[list[str], list[list[int]], int, int]]
+    ) -> list[list[Any]]:
         words = [item[0] for item in data]
         entities_ranges = [item[1] for item in data]
         targets = [item[2] for item in data]
@@ -23,7 +30,9 @@ class Collater:
 
 
 class DataProcess(Dataset):
-    def __init__(self, data, embed_mode):
+    def __init__(
+        self, data: list[tuple[list[str], list[list[int]], str]], embed_mode: str
+    ) -> None:
         self.data = data
         self.embed_mode = embed_mode
         # Same checkpoint as the model, so that the sub-word offsets match its
@@ -44,10 +53,10 @@ class DataProcess(Dataset):
             "Negative Relation": 1,
         }
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[list[str], list[list[int]], int, int]:
         words = self.data[idx][0]
         entities_range = self.data[idx][1]
         target = self.mapping_target[self.data[idx][2]]
@@ -63,7 +72,7 @@ class DataProcess(Dataset):
 
         return (words, new_entities_range, target, relation)
 
-    def map_origin_word_to_bert(self, words):
+    def map_origin_word_to_bert(self, words: list[str]) -> dict[int, list[int]]:
         bep_dict = {}
         current_idx = 0
         for word_idx, word in enumerate(words):
@@ -73,7 +82,9 @@ class DataProcess(Dataset):
             current_idx = current_idx + word_len
         return bep_dict
 
-    def ner_label_transform(self, entities_range, word_to_bert):
+    def ner_label_transform(
+        self, entities_range: list[list[int]], word_to_bert: dict[int, list[int]]
+    ) -> list[list[int]]:
         new_entities_range = []
         for r in entities_range:
             # +1 for [CLS]
@@ -84,7 +95,9 @@ class DataProcess(Dataset):
         return new_entities_range
 
 
-def data_preprocess(keys, data):
+def data_preprocess(
+    keys: Iterable[str], data: dict[str, Any]
+) -> list[tuple[list[str], list[list[int]], str]]:
     processed = []
     for k in keys:
         dic = data[k]
@@ -96,7 +109,7 @@ def data_preprocess(keys, data):
     return processed
 
 
-def dataloader(args):
+def dataloader(args: argparse.Namespace) -> tuple[DataLoader, DataLoader, DataLoader]:
     if args.do_cross_disease_training:
         data = read_json(args.dataset_path)
         # Create the fold of keys for training and test (5-fold CV is applied)

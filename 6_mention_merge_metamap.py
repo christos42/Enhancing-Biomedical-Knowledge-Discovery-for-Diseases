@@ -221,18 +221,18 @@ if __name__ == "__main__":
 
     # Deal with overlaps using expansion
     for k in all_entities:
-        keys_to_remove, merged_entities = resolve_overlaps_with_expansion(
+        key_pairs_to_remove, merged_entities = resolve_overlaps_with_expansion(
             list(all_entities[k].keys()), all_entities[k].copy()
         )
-        for m_ent in merged_entities:
-            all_entities[k][m_ent["position"]] = m_ent
-        for k_r in keys_to_remove:
+        for merged_entity in merged_entities:
+            all_entities[k][merged_entity["position"]] = merged_entity
+        for key_pair in key_pairs_to_remove:
             try:
-                all_entities[k].pop(k_r[0])
+                all_entities[k].pop(key_pair[0])
             except Exception:
                 pass
             try:
-                all_entities[k].pop(k_r[1])
+                all_entities[k].pop(key_pair[1])
             except Exception:
                 pass
 

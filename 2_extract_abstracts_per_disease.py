@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import argparse
+from typing import Any
 
 from utils.pubmed import PubMed
 from utils.utils import (
@@ -10,9 +13,9 @@ from utils.utils import (
 )
 
 
-def get_unique_abstracts(all_abstracts):
+def get_unique_abstracts(all_abstracts: dict[str, dict[str, Any]]) -> dict[str, Any]:
     # Applicable if PubMedDivide class is used for abstract extraction.
-    unique_abstracts = {}
+    unique_abstracts: dict[str, Any] = {}
     for date in all_abstracts.keys():
         for id_ in all_abstracts[date].keys():
             if id_ not in unique_abstracts.keys():

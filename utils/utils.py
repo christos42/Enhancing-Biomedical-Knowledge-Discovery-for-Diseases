@@ -1,19 +1,22 @@
+from __future__ import annotations
+
 import json
 import os
+from typing import Any
 
 
-def save_json(file, name, output_path=""):
+def save_json(file: Any, name: str, output_path: str = "") -> None:
     with open(output_path + name, "w") as outfile:
         json.dump(file, outfile)
 
 
-def read_json(f_path):
+def read_json(f_path: str) -> Any:
     f = open(f_path)
     data = json.load(f)
     return data
 
 
-def find_json_files(path):
+def find_json_files(path: str) -> list[str]:
     f_path = []
     for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
@@ -25,7 +28,7 @@ def find_json_files(path):
     return sorted(f_path)
 
 
-def find_csv_files(path):
+def find_csv_files(path: str) -> list[str]:
     f_path = []
     for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
@@ -37,13 +40,13 @@ def find_csv_files(path):
     return sorted(f_path)
 
 
-def create_new_folder(path):
+def create_new_folder(path: str) -> None:
     exists = os.path.exists(path)
     if not exists:
         os.makedirs(path)
 
 
-def no_intersection_lists(list1, list2):
+def no_intersection_lists(list1: list[str], list2: list[str]) -> list[str]:
     # Constant-time membership; a list made this quadratic for large PMID lists
     set2 = set(list2)
     no_inter_list = []

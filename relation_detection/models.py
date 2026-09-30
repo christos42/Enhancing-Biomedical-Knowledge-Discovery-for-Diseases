@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import argparse
 import os
 import sys
 
@@ -12,7 +15,7 @@ from utils.training_utils import (
 
 
 class LaMReDA(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -57,26 +60,28 @@ class LaMReDA(torch.nn.Module):
                 args.projection_dimension, classification_output_size
             )
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> torch.Tensor:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        input_ids = x["input_ids"].to(self.device)
+        input_ids = inputs["input_ids"].to(self.device)
         # x = self.model(**x)[0]
-        x = self.model(
+        outputs = self.model(
             input_ids=input_ids,
-            attention_mask=x["attention_mask"],
+            attention_mask=inputs["attention_mask"],
             output_attentions=True,
             output_hidden_states=True,
         )
 
         rel_representations = []
         # for i, r1 in enumerate(x):
-        for i, r1 in enumerate(x["last_hidden_state"]):
+        for i, r1 in enumerate(outputs["last_hidden_state"]):
             start_ent_1 = entities_range[i][0][0]
             end_ent_1 = entities_range[i][0][1]
             start_ent_2 = entities_range[i][1][0]
@@ -232,7 +237,7 @@ class LaMReDA(torch.nn.Module):
             elif self.args.aggregation == "atlop_context_vector_only":
                 # Attention of the last layer from the [ent] markers of the two entities
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][-1][i],
+                    outputs["attentions"][-1][i],
                     r1,
                     (start_ent_1, start_ent_1),
                     (start_ent_2, start_ent_2),
@@ -242,7 +247,7 @@ class LaMReDA(torch.nn.Module):
             elif self.args.aggregation == "atlop_context_vector":
                 # Attention of the last layer from the [ent] markers of the two entities
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][-1][i],
+                    outputs["attentions"][-1][i],
                     r1,
                     (start_ent_1, start_ent_1),
                     (start_ent_2, start_ent_2),
@@ -273,7 +278,7 @@ class LaMReDA(torch.nn.Module):
 
 
 class LaMReDM(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -318,26 +323,28 @@ class LaMReDM(torch.nn.Module):
                 args.projection_dimension, classification_output_size
             )
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> torch.Tensor:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        input_ids = x["input_ids"].to(self.device)
+        input_ids = inputs["input_ids"].to(self.device)
         # x = self.model(**x)[0]
-        x = self.model(
+        outputs = self.model(
             input_ids=input_ids,
-            attention_mask=x["attention_mask"],
+            attention_mask=inputs["attention_mask"],
             output_attentions=True,
             output_hidden_states=True,
         )
 
         rel_representations = []
         # for i, r1 in enumerate(x):
-        for i, r1 in enumerate(x["last_hidden_state"]):
+        for i, r1 in enumerate(outputs["last_hidden_state"]):
             start_ent_1 = entities_range[i][0][0]
             end_ent_1 = entities_range[i][0][1]
             start_ent_2 = entities_range[i][1][0]
@@ -493,7 +500,7 @@ class LaMReDM(torch.nn.Module):
             elif self.args.aggregation == "atlop_context_vector":
                 # Attention of the last layer from the [ent] markers of the two entities
                 head_tail_context_vector = atlop_context_vector(
-                    x["attentions"][-1][i],
+                    outputs["attentions"][-1][i],
                     r1,
                     (start_ent_1, start_ent_1),
                     (start_ent_2, start_ent_2),

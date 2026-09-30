@@ -1,5 +1,10 @@
-def get_cooccurrence_dict_metamap(data):
-    freq_pairs = {}
+from __future__ import annotations
+
+from typing import Any
+
+
+def get_cooccurrence_dict_metamap(data: dict[str, Any]) -> dict[str, Any]:
+    freq_pairs: dict[str, dict[str, Any]] = {}
     for k1 in data:
         for i, ent1_ in enumerate(list(data[k1].keys())):
             ent1 = data[k1][ent1_]
@@ -42,8 +47,8 @@ def get_cooccurrence_dict_metamap(data):
     return freq_pairs_sorted
 
 
-def get_cooccurrence_dict(data):
-    freq_pairs = {}
+def get_cooccurrence_dict(data: dict[str, Any]) -> dict[str, Any]:
+    freq_pairs: dict[str, dict[str, Any]] = {}
     for k1 in data:
         for k2 in data[k1]:
             for i, ent1 in enumerate(data[k1][k2]["sampled_linked_entities"]):
@@ -88,8 +93,8 @@ def get_cooccurrence_dict(data):
     return freq_pairs_sorted
 
 
-def get_cooccurrence_narrow_dict(data):
-    freq_pairs = {}
+def get_cooccurrence_narrow_dict(data: dict[str, Any]) -> dict[str, Any]:
+    freq_pairs: dict[str, dict[str, Any]] = {}
     for k1 in data:
         for k2 in data[k1]:
             for i, ent1 in enumerate(data[k1][k2]["sampled_linked_entities"]):
@@ -130,9 +135,9 @@ def get_cooccurrence_narrow_dict(data):
     return freq_pairs_sorted
 
 
-def get_unique_cuis_metamap(data):
+def get_unique_cuis_metamap(data: dict[str, Any]) -> list[str]:
     # Used as an insertion-ordered set: constant-time membership, unlike a list
-    unique_cuis = {}
+    unique_cuis: dict[str, None] = {}
     for k1 in data:
         for k2 in data[k1].keys():
             ent = data[k1][k2]
@@ -143,9 +148,9 @@ def get_unique_cuis_metamap(data):
     return list(unique_cuis)
 
 
-def get_unique_cuis(data):
+def get_unique_cuis(data: dict[str, Any]) -> list[str]:
     # Used as an insertion-ordered set: constant-time membership, unlike a list
-    unique_cuis = {}
+    unique_cuis: dict[str, None] = {}
     for k1 in data:
         for k2 in data[k1]:
             for ent in data[k1][k2]["sampled_linked_entities"]:
@@ -155,9 +160,9 @@ def get_unique_cuis(data):
     return list(unique_cuis)
 
 
-def get_unique_cuis_narrow(data):
+def get_unique_cuis_narrow(data: dict[str, Any]) -> list[str]:
     # Used as an insertion-ordered set: constant-time membership, unlike a list
-    unique_cuis = {}
+    unique_cuis: dict[str, None] = {}
     for k1 in data:
         for k2 in data[k1]:
             for ent in data[k1][k2]["sampled_linked_entities"]:

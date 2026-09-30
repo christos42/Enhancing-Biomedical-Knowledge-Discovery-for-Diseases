@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import argparse
 import os
 import sys
+from typing import Any
 
 import numpy as np
 
@@ -8,13 +11,15 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "
 from utils import read_json, save_json
 
 
-def get_chunk(pos):
+def get_chunk(pos: str) -> list[int]:
     start = int(pos.split("/")[0]) - 1
     stop = start + int(pos.split("/")[1])
     return np.arange(start, stop).tolist()
 
 
-def process_sampled_sentences(sampled_ids, data_entities, abstracts):
+def process_sampled_sentences(
+    sampled_ids: list[str], data_entities: dict[str, Any], abstracts: dict[str, Any]
+) -> dict[str, Any]:
     markdown_sentences = {}
     for id_ in sampled_ids:
         k1 = id_.split("_")[0]

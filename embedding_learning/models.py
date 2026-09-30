@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import argparse
 import os
 import sys
 
@@ -8,7 +11,7 @@ from utils.training_utils import inter_representation, load_backbone_with_marker
 
 
 class LaMEL(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -26,18 +29,20 @@ class LaMEL(torch.nn.Module):
         self.head_projector = torch.nn.Linear(linear_input_size, linear_input_size)
         self.tail_projector = torch.nn.Linear(linear_input_size, linear_input_size)
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        x = self.model(**x)[0]
+        outputs = self.model(**inputs)[0]
 
         ent_1_representations, ent_2_representations = [], []
-        for i, r1 in enumerate(x):
+        for i, r1 in enumerate(outputs):
             start_ent_1 = entities_range[i][0][0]
             end_ent_1 = entities_range[i][0][1]
             start_ent_2 = entities_range[i][1][0]
@@ -122,7 +127,7 @@ class LaMEL(torch.nn.Module):
 
 
 class LaMELInter(torch.nn.Module):
-    def __init__(self, args, device):
+    def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
         self.args = args
@@ -139,18 +144,20 @@ class LaMELInter(torch.nn.Module):
         self.tail_projector = torch.nn.Linear(linear_input_size, linear_input_size)
         self.head_tail_projector = torch.nn.Linear(inter_input_size, inter_input_size)
 
-    def forward(self, x, entities_range):
-        x = self.tokenizer(
+    def forward(
+        self, x: list[list[str]], entities_range: list[list[list[int]]]
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        inputs = self.tokenizer(
             x,
             return_tensors="pt",
             padding="longest",
             add_special_tokens=True,
             is_split_into_words=True,
         ).to(self.device)
-        x = self.model(**x)[0]
+        outputs = self.model(**inputs)[0]
 
         ent_1_representations, ent_2_representations = [], []
-        for i, r1 in enumerate(x):
+        for i, r1 in enumerate(outputs):
             start_ent_1 = entities_range[i][0][0]
             end_ent_1 = entities_range[i][0][1]
             start_ent_2 = entities_range[i][1][0]

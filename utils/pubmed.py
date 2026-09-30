@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import collections
+from collections.abc import Sequence
 from datetime import date
+from typing import Any
 
 import matplotlib.pyplot as plt
 from Bio import Entrez
 
 
 class PubMed:
-    def __init__(self, query, start=0):
+    def __init__(self, query: Sequence[str], start: int = 0) -> None:
         if len(query) == 1:
             self.query = query[0]
         else:
@@ -14,7 +18,7 @@ class PubMed:
         self.start = start
         self.start_date, self.end_date = self.get_start_end_dates()
 
-    def get_start_end_dates(self):
+    def get_start_end_dates(self) -> tuple[list[str], list[str]]:
         start_dates = []
         end_dates = []
         for y in range(1900, date.today().year + 1):
@@ -25,7 +29,7 @@ class PubMed:
 
         return start_dates, end_dates
 
-    def search(self, mindate, maxdate):
+    def search(self, mindate: str, maxdate: str) -> Any:
         Entrez.email = ""
         handle = Entrez.esearch(
             db="pubmed",
@@ -42,7 +46,7 @@ class PubMed:
 
         return results
 
-    def fetch_details(self, id_list):
+    def fetch_details(self, id_list: list[str]) -> Any:
         id_list_c = self.check_ids(id_list)
         ids = ",".join(id_list_c)
         Entrez.email = ""
@@ -51,7 +55,7 @@ class PubMed:
 
         return results
 
-    def retrieve_abstracts(self, id_list):
+    def retrieve_abstracts(self, id_list: list[str]) -> dict[str, dict[str, Any]]:
         d = self.fetch_details(id_list)
         abstracts = {}
         for doc in d["PubmedArticle"]:
@@ -121,12 +125,12 @@ class PubMed:
 
         return abstracts
 
-    def total_number_of_docs(self):
+    def total_number_of_docs(self) -> str:
         s = self.search("", "")
         print("Total number of documents: {}".format(s["Count"]))
         return s["Count"]
 
-    def retrieve_all_ids(self, print_logging=0):
+    def retrieve_all_ids(self, print_logging: int = 0) -> tuple[list[str], list[str]]:
         ids, n_ids_per_search = [], []
         for s_d, e_d in zip(self.start_date, self.end_date):
             s = self.search(s_d, e_d)
@@ -143,13 +147,13 @@ class PubMed:
 
         return unique_ids_c, n_ids_per_search
 
-    def fetch_details_all_ids(self):
+    def fetch_details_all_ids(self) -> Any:
         ids, _ = self.retrieve_all_ids()
         res = self.fetch_details(ids)
 
         return res
 
-    def retrieve_all_abstracts(self):
+    def retrieve_all_abstracts(self) -> dict[str, dict[str, Any]]:
         ids, _ = self.retrieve_all_ids()
         abstracts = {}
         for i in range(0, len(ids), 5000):
@@ -214,14 +218,14 @@ class PubMed:
 
         return abstracts
 
-    def reform_abstract(self, abstract):
+    def reform_abstract(self, abstract: list[str]) -> str:
         reformed_abstract = []
         for doc in abstract:
             reformed_abstract.append(" ".join(doc.split()))
 
         return " ".join(reformed_abstract)
 
-    def get_pub_date(self, doc, doc_type):
+    def get_pub_date(self, doc: Any, doc_type: str) -> tuple[str, int]:
         if doc_type == "article":
             try:
                 # 0: pubstatus: accepted
@@ -250,7 +254,7 @@ class PubMed:
 
         return date, found
 
-    def check_ids(self, ids):
+    def check_ids(self, ids: list[str]) -> list[str]:
         c_ids = []
         for id_ in ids:
             if id_ == "":
@@ -266,7 +270,7 @@ class PubMed:
 
 
 class PubMedDivide:
-    def __init__(self, query, start=0):
+    def __init__(self, query: Sequence[str], start: int = 0) -> None:
         if len(query) == 1:
             self.query = query[0]
         else:
@@ -274,7 +278,7 @@ class PubMedDivide:
         self.start = start
         self.start_date, self.end_date = self.get_start_end_dates()
 
-    def get_start_end_dates(self):
+    def get_start_end_dates(self) -> tuple[list[str], list[str]]:
         start_dates = []
         end_dates = []
         for y in range(1900, date.today().year + 1):
@@ -285,7 +289,7 @@ class PubMedDivide:
 
         return start_dates, end_dates
 
-    def search(self, mindate, maxdate):
+    def search(self, mindate: str, maxdate: str) -> Any:
         Entrez.email = ""
         handle = Entrez.esearch(
             db="pubmed",
@@ -302,7 +306,7 @@ class PubMedDivide:
 
         return results
 
-    def fetch_details(self, id_list):
+    def fetch_details(self, id_list: list[str]) -> Any:
         ids = ",".join(id_list)
         Entrez.email = ""
         handle = Entrez.efetch(db="pubmed", retmode="xml", id=ids)
@@ -310,7 +314,7 @@ class PubMedDivide:
 
         return results
 
-    def retrieve_abstracts(self, id_list):
+    def retrieve_abstracts(self, id_list: list[str]) -> dict[str, dict[str, Any]]:
         d = self.fetch_details(id_list)
         abstracts = {}
         for doc in d["PubmedArticle"]:
@@ -368,19 +372,19 @@ class PubMedDivide:
 
         return abstracts
 
-    def total_number_of_docs(self):
+    def total_number_of_docs(self) -> str:
         s = self.search("", "")
         print("Total number of documents: {}".format(s["Count"]))
         return s["Count"]
 
-    def reform_abstract(self, abstract):
+    def reform_abstract(self, abstract: list[str]) -> str:
         reformed_abstract = []
         for doc in abstract:
             reformed_abstract.append(" ".join(doc.split()))
 
         return " ".join(reformed_abstract)
 
-    def get_pub_date(self, doc, doc_type):
+    def get_pub_date(self, doc: Any, doc_type: str) -> tuple[str, int]:
         if doc_type == "article":
             try:
                 # 0: pubstatus: accepted
@@ -409,7 +413,7 @@ class PubMedDivide:
 
         return date, found
 
-    def process(self):
+    def process(self) -> dict[str, dict[str, dict[str, Any]]]:
         all_abstracts = {}
         for s_d, e_d in zip(self.start_date, self.end_date):
             s = self.search(s_d, e_d)
@@ -423,16 +427,21 @@ class PubMedDivide:
 
 
 class Abstract:
-    def __init__(self, abstract_dict, disease, output_path=""):
+    def __init__(
+        self,
+        abstract_dict: dict[str, dict[str, Any]],
+        disease: str,
+        output_path: str = "",
+    ) -> None:
         self.abstract_dict = abstract_dict
         self.disease = disease
         self.output_path = output_path
 
-    def number_of_abstracts(self):
+    def number_of_abstracts(self) -> int:
         return len(list(self.abstract_dict.keys()))
 
-    def freq_per_month(self):
-        freq = {}
+    def freq_per_month(self) -> dict[str, int]:
+        freq: dict[str, int] = {}
         for k in self.abstract_dict:
             date = self.abstract_dict[k]["date"]
             if date not in freq.keys():
@@ -442,8 +451,8 @@ class Abstract:
 
         return dict(collections.OrderedDict(sorted(freq.items())))
 
-    def freq_per_year(self):
-        freq = {}
+    def freq_per_year(self) -> dict[str, int]:
+        freq: dict[str, int] = {}
         for k in self.abstract_dict:
             date = self.abstract_dict[k]["date"].split("/")[0]
             if date not in freq.keys():
@@ -453,7 +462,7 @@ class Abstract:
 
         return dict(collections.OrderedDict(sorted(freq.items())))
 
-    def plot_bar_chart_per_year(self):
+    def plot_bar_chart_per_year(self) -> None:
         freq = self.freq_per_year()
         fig = plt.figure(figsize=(12, 8))
         ax = fig.add_axes([0, 0, 1, 1])
@@ -468,7 +477,7 @@ class Abstract:
             bbox_inches="tight",
         )
 
-    def plot_per_year(self):
+    def plot_per_year(self) -> None:
         freq = self.freq_per_year()
         fig = plt.figure(figsize=(12, 8))
         ax = fig.add_axes([0, 0, 1, 1])

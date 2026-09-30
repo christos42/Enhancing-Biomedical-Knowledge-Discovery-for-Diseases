@@ -11,26 +11,29 @@ the constituent vocabularies and to file a brief annual report on your use of th
 You also must have activated a UMLS Terminology Services (UTS) account.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
+from typing import Any
 
 import pandas as pd
 from pymetamap import MetaMapLite
 
 
-def save_json(file, name, output_path=""):
+def save_json(file: Any, name: str, output_path: str = "") -> None:
     with open(output_path + name, "w") as outfile:
         json.dump(file, outfile)
 
 
-def read_json(f_path):
+def read_json(f_path: str) -> Any:
     f = open(f_path)
     data = json.load(f)
     return data
 
 
-def find_json_files(path):
+def find_json_files(path: str) -> list[str]:
     f_path = []
     for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
@@ -40,13 +43,13 @@ def find_json_files(path):
     return f_path
 
 
-def create_new_folder(path):
+def create_new_folder(path: str) -> None:
     exists = os.path.exists(path)
     if not exists:
         os.makedirs(path)
 
 
-def get_keys_from_mm(concept, klist):
+def get_keys_from_mm(concept: Any, klist: list[str]) -> tuple[Any, ...]:
     conc_dict = concept._asdict()
     conc_list = [conc_dict.get(kk) for kk in klist]
     return tuple(conc_list)
