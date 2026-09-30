@@ -1,13 +1,15 @@
 import os
-import sys
-from torch.utils.data import Dataset, DataLoader
 import random
+import sys
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from utils.utils import read_json
+from torch.utils.data import DataLoader, Dataset
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from utils.training_utils import CV, load_tokenizer_with_markers
+from utils.utils import read_json
 
-class collater_1():
+
+class collater_1:
     def __init__(self):
         pass
 
@@ -20,26 +22,31 @@ class collater_1():
 
 
 class DataProcess(Dataset):
-    def __init__(self, data, embed_mode, exp_setting, use_distantly_supervised_data=False):
+    def __init__(
+        self, data, embed_mode, exp_setting, use_distantly_supervised_data=False
+    ):
         self.data = data
         self.embed_mode = embed_mode
         # Same checkpoint as the model, so that the sub-word offsets match its tokenization
         self.tokenizer = load_tokenizer_with_markers(embed_mode)
 
-        if exp_setting == 'binary':
+        if exp_setting == "binary":
             if use_distantly_supervised_data:
-                self.mapping = {'No Relation': 0,
-                                'Relation': 1}
+                self.mapping = {"No Relation": 0, "Relation": 1}
             else:
-                self.mapping = {'No Relation': 0,
-                                'Positive Relation': 1,
-                                'Complex Relation': 1,
-                                'Negative Relation': 1}
-        elif exp_setting == 'multi_class':
-            self.mapping = {'No Relation': 0,
-                            'Positive Relation': 1,
-                            'Complex Relation': 2,
-                            'Negative Relation': 3}
+                self.mapping = {
+                    "No Relation": 0,
+                    "Positive Relation": 1,
+                    "Complex Relation": 1,
+                    "Negative Relation": 1,
+                }
+        elif exp_setting == "multi_class":
+            self.mapping = {
+                "No Relation": 0,
+                "Positive Relation": 1,
+                "Complex Relation": 2,
+                "Negative Relation": 3,
+            }
 
     def __len__(self):
         return len(self.data)
@@ -49,16 +56,15 @@ class DataProcess(Dataset):
         entities_range = self.data[idx][1]
         relation = self.mapping[self.data[idx][2]]
 
-        #sent_str = ' '.join(words)
-        #bert_words = self.tokenizer.tokenize(sent_str)
+        # sent_str = ' '.join(words)
+        # bert_words = self.tokenizer.tokenize(sent_str)
         # bert_len = original sentence + [CLS] and [SEP]
-        #bert_len = len(bert_words) + 2
+        # bert_len = len(bert_words) + 2
 
         word_to_bep = self.map_origin_word_to_bert(words)
         new_entities_range = self.ner_label_transform(entities_range, word_to_bep)
 
         return (words, new_entities_range, relation)
-
 
     def map_origin_word_to_bert(self, words):
         bep_dict = {}
@@ -85,9 +91,9 @@ def data_preprocess(keys, data):
     processed = []
     for k in keys:
         dic = data[k]
-        text = dic['updated_tokens']
-        entities = dic['updated_entities']
-        relation = dic['relation']
+        text = dic["updated_tokens"]
+        entities = dic["updated_entities"]
+        relation = dic["relation"]
 
         processed += [(text, entities, relation)]
     return processed
@@ -97,9 +103,9 @@ def data_preprocess_distant_data(keys, data, exp_setting):
     processed = []
     for k in keys:
         dic = data[k]
-        text = dic['updated_tokens']
-        entities = dic['updated_entities']
-        relation = dic['relation'][exp_setting]
+        text = dic["updated_tokens"]
+        entities = dic["updated_entities"]
+        relation = dic["relation"][exp_setting]
 
         processed += [(text, entities, relation)]
     return processed
@@ -125,7 +131,9 @@ def dataloader(args):
         data_test = read_json(args.dataset_path_test)
         test_keys = list(data_test.keys())
         # Preprocess the data before sending them in the Dataset class
-        train_data = data_preprocess_distant_data(train_keys, data_train, args.exp_setting)
+        train_data = data_preprocess_distant_data(
+            train_keys, data_train, args.exp_setting
+        )
         dev_data = data_preprocess(dev_keys, data_dev)
         test_data = data_preprocess(test_keys, data_test)
     elif args.do_cross_disease_training:
@@ -177,33 +185,62 @@ def dataloader(args):
             test_data = data_preprocess(dataset_test.keys(), dataset_test)
             dev_data = data_preprocess(dataset_dev.keys(), dataset_dev)
 
-
     if args.do_end_to_end_training:
-        train_dataset = DataProcess(train_data, args.embed_mode,  args.exp_setting)
+        train_dataset = DataProcess(train_data, args.embed_mode, args.exp_setting)
         test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
     elif args.use_distantly_supervised_data:
-        train_dataset = DataProcess(train_data, args.embed_mode, args.exp_setting, args.use_distantly_supervised_data)
+        train_dataset = DataProcess(
+            train_data,
+            args.embed_mode,
+            args.exp_setting,
+            args.use_distantly_supervised_data,
+        )
         test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
         dev_dataset = DataProcess(dev_data, args.embed_mode, args.exp_setting)
     else:
-        train_dataset = DataProcess(train_data, args.embed_mode,  args.exp_setting)
-        test_dataset = DataProcess(test_data, args.embed_mode,  args.exp_setting)
-        dev_dataset = DataProcess(dev_data, args.embed_mode,  args.exp_setting)
+        train_dataset = DataProcess(train_data, args.embed_mode, args.exp_setting)
+        test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
+        dev_dataset = DataProcess(dev_data, args.embed_mode, args.exp_setting)
 
     collate_fn = collater_1()
 
     if args.do_end_to_end_training:
-        train_batch = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True,
-                                 collate_fn=collate_fn)
-        test_batch = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                                collate_fn=collate_fn)
+        train_batch = DataLoader(
+            dataset=train_dataset,
+            batch_size=args.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
+        test_batch = DataLoader(
+            dataset=test_dataset,
+            batch_size=args.eval_batch_size,
+            shuffle=False,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
     else:
-        train_batch = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True,
-                                 collate_fn=collate_fn)
-        test_batch = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                                collate_fn=collate_fn)
-        dev_batch = DataLoader(dataset=dev_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                               collate_fn=collate_fn)
+        train_batch = DataLoader(
+            dataset=train_dataset,
+            batch_size=args.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
+        test_batch = DataLoader(
+            dataset=test_dataset,
+            batch_size=args.eval_batch_size,
+            shuffle=False,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
+        dev_batch = DataLoader(
+            dataset=dev_dataset,
+            batch_size=args.eval_batch_size,
+            shuffle=False,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
 
     if args.do_end_to_end_training:
         return train_batch, test_batch

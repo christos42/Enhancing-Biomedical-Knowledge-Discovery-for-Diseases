@@ -1,14 +1,16 @@
 import os
-import sys
-from transformers import AutoTokenizer
-from torch.utils.data import Dataset, DataLoader
 import random
+import sys
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-from utils.utils import read_json
+from torch.utils.data import DataLoader, Dataset
+from transformers import AutoTokenizer
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 from utils.training_utils import CV, PROBING_BACKBONES
+from utils.utils import read_json
 
-class collater_1():
+
+class collater_1:
     def __init__(self):
         pass
 
@@ -26,16 +28,20 @@ class DataProcess(Dataset):
         self.embed_mode = embed_mode
         self.tokenizer = AutoTokenizer.from_pretrained(PROBING_BACKBONES[embed_mode][0])
 
-        if exp_setting == 'binary':
-            self.mapping = {'No Relation': 0,
-                            'Positive Relation': 1,
-                            'Complex Relation': 1,
-                            'Negative Relation': 1}
-        elif exp_setting == 'multi_class':
-            self.mapping = {'No Relation': 0,
-                            'Positive Relation': 1,
-                            'Complex Relation': 2,
-                            'Negative Relation': 3}
+        if exp_setting == "binary":
+            self.mapping = {
+                "No Relation": 0,
+                "Positive Relation": 1,
+                "Complex Relation": 1,
+                "Negative Relation": 1,
+            }
+        elif exp_setting == "multi_class":
+            self.mapping = {
+                "No Relation": 0,
+                "Positive Relation": 1,
+                "Complex Relation": 2,
+                "Negative Relation": 3,
+            }
 
     def __len__(self):
         return len(self.data)
@@ -45,16 +51,15 @@ class DataProcess(Dataset):
         entities_range = self.data[idx][1]
         relation = self.mapping[self.data[idx][2]]
 
-        #sent_str = ' '.join(words)
-        #bert_words = self.tokenizer.tokenize(sent_str)
+        # sent_str = ' '.join(words)
+        # bert_words = self.tokenizer.tokenize(sent_str)
         # bert_len = original sentence + [CLS] and [SEP]
-        #bert_len = len(bert_words) + 2
+        # bert_len = len(bert_words) + 2
 
         word_to_bep = self.map_origin_word_to_bert(words)
         new_entities_range = self.ner_label_transform(entities_range, word_to_bep)
 
         return (words, new_entities_range, relation)
-
 
     def map_origin_word_to_bert(self, words):
         bep_dict = {}
@@ -82,9 +87,9 @@ def data_preprocess(keys, data):
     processed = []
     for k in keys:
         dic = data[k]
-        text = dic['tokens']
-        entities = dic['entities']
-        relation = dic['relation']
+        text = dic["tokens"]
+        entities = dic["entities"]
+        relation = dic["relation"]
 
         processed += [(text, entities, relation)]
     return processed
@@ -123,17 +128,32 @@ def dataloader(args):
         test_data = data_preprocess(test_keys, data)
         dev_data = data_preprocess(dev_keys, data)
 
-    train_dataset = DataProcess(train_data, args.embed_mode,  args.exp_setting)
-    test_dataset = DataProcess(test_data, args.embed_mode,  args.exp_setting)
-    dev_dataset = DataProcess(dev_data, args.embed_mode,  args.exp_setting)
+    train_dataset = DataProcess(train_data, args.embed_mode, args.exp_setting)
+    test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
+    dev_dataset = DataProcess(dev_data, args.embed_mode, args.exp_setting)
 
     collate_fn = collater_1()
 
-    train_batch = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True,
-                             collate_fn=collate_fn)
-    test_batch = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                            collate_fn=collate_fn)
-    dev_batch = DataLoader(dataset=dev_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                           collate_fn=collate_fn)
+    train_batch = DataLoader(
+        dataset=train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        pin_memory=True,
+        collate_fn=collate_fn,
+    )
+    test_batch = DataLoader(
+        dataset=test_dataset,
+        batch_size=args.eval_batch_size,
+        shuffle=False,
+        pin_memory=True,
+        collate_fn=collate_fn,
+    )
+    dev_batch = DataLoader(
+        dataset=dev_dataset,
+        batch_size=args.eval_batch_size,
+        shuffle=False,
+        pin_memory=True,
+        collate_fn=collate_fn,
+    )
 
     return train_batch, test_batch, dev_batch

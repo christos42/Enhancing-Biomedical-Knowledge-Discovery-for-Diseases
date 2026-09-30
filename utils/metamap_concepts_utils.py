@@ -3,33 +3,47 @@ def get_entities(d):
     for r in d.itertuples():
         if r.score < 0.4:
             continue
-        pos = r.pos_info.split(';')
+        pos = r.pos_info.split(";")
         for p in pos:
             if p not in entities:
-                entities[p] = {'preferred_name': r.preferred_name,
-                               'cui': r.cui,
-                               'semantic_type': r.semtypes,
-                               'position': p,
-                               'score': r.score,
-                               'trigger': r.trigger}
+                entities[p] = {
+                    "preferred_name": r.preferred_name,
+                    "cui": r.cui,
+                    "semantic_type": r.semtypes,
+                    "position": p,
+                    "score": r.score,
+                    "trigger": r.trigger,
+                }
 
     return entities
 
 
 def get_chunk(pos):
-    start = int(pos.split('/')[0]) - 1
-    stop = start + int(pos.split('/')[1])
+    start = int(pos.split("/")[0]) - 1
+    stop = start + int(pos.split("/")[1])
     return [start, stop]
 
 
 def merge_sequent_entities(en1, en2, chunk1, chunk2):
-    m_ent = {'preferred_name': en1['preferred_name'] + '||' + en2['preferred_name'],
-             'cui': "||".join(list(dict.fromkeys((en1['cui'] + '||' + en2['cui']).split('||')))),
-             'semantic_type': list(dict.fromkeys(en1['semantic_type'] + en2['semantic_type'])),
-             'position': str(chunk1[0] + 1) + '/' + str(max(chunk1[1], chunk2[1]) - chunk1[0]),
-             'score': [en1['score'], en2['score']],
-             'trigger': "||".join(list(dict.fromkeys((en1['trigger'] + '||' + en2['trigger']).split('||')))),
-             'mapped_semantic_type': list(dict.fromkeys(en1['mapped_semantic_type'] + en2['mapped_semantic_type']))}
+    m_ent = {
+        "preferred_name": en1["preferred_name"] + "||" + en2["preferred_name"],
+        "cui": "||".join(
+            list(dict.fromkeys((en1["cui"] + "||" + en2["cui"]).split("||")))
+        ),
+        "semantic_type": list(
+            dict.fromkeys(en1["semantic_type"] + en2["semantic_type"])
+        ),
+        "position": str(chunk1[0] + 1)
+        + "/"
+        + str(max(chunk1[1], chunk2[1]) - chunk1[0]),
+        "score": [en1["score"], en2["score"]],
+        "trigger": "||".join(
+            list(dict.fromkeys((en1["trigger"] + "||" + en2["trigger"]).split("||")))
+        ),
+        "mapped_semantic_type": list(
+            dict.fromkeys(en1["mapped_semantic_type"] + en2["mapped_semantic_type"])
+        ),
+    }
 
     return m_ent
 
@@ -41,13 +55,13 @@ def detect_overlaps(positions, d_):
             if i1 == i2:
                 continue
             else:
-                p1_start = int(p1.split('/')[0]) - 1
-                p1_stop = p1_start + int(p1.split('/')[1])
-                p2_start = int(p2.split('/')[0]) - 1
-                p2_stop = p2_start + int(p2.split('/')[1])
+                p1_start = int(p1.split("/")[0]) - 1
+                p1_stop = p1_start + int(p1.split("/")[1])
+                p2_start = int(p2.split("/")[0]) - 1
+                p2_stop = p2_start + int(p2.split("/")[1])
                 if (p1_start <= p2_start) and (p2_start <= p1_stop):
-                    cui1 = d_[p1]['cui']
-                    cui2 = d_[p2]['cui']
+                    cui1 = d_[p1]["cui"]
+                    cui2 = d_[p2]["cui"]
                     if cui1 == cui2:
                         flag = 0
                         for i3, o in enumerate(overlaps):
@@ -68,18 +82,18 @@ def resolve_overlaps(positions, d_, overlaps):
     for o in overlaps:
         p1 = positions[o[0]]
         p2 = positions[o[1]]
-        score1 = d_[p1]['score']
-        score2 = d_[p2]['score']
+        score1 = d_[p1]["score"]
+        score2 = d_[p2]["score"]
         try:
             if score1 > score2:
                 keys_to_remove.append(p2)
             elif score1 < score2:
                 keys_to_remove.append(p1)
             else:
-                p1_start = int(p1.split('/')[0]) - 1
-                p1_stop = p1_start + int(p1.split('/')[1])
-                p2_start = int(p2.split('/')[0]) - 1
-                p2_stop = p2_start + int(p2.split('/')[1])
+                p1_start = int(p1.split("/")[0]) - 1
+                p1_stop = p1_start + int(p1.split("/")[1])
+                p2_start = int(p2.split("/")[0]) - 1
+                p2_stop = p2_start + int(p2.split("/")[1])
                 len1 = p1_stop - p1_start
                 len2 = p2_stop - p2_start
                 if len1 > len2:
@@ -100,10 +114,10 @@ def resolve_overlaps(positions, d_, overlaps):
             elif s1 < s2:
                 keys_to_remove.append(p1)
             else:
-                p1_start = int(p1.split('/')[0]) - 1
-                p1_stop = p1_start + int(p1.split('/')[1])
-                p2_start = int(p2.split('/')[0]) - 1
-                p2_stop = p2_start + int(p2.split('/')[1])
+                p1_start = int(p1.split("/")[0]) - 1
+                p1_stop = p1_start + int(p1.split("/")[1])
+                p2_start = int(p2.split("/")[0]) - 1
+                p2_stop = p2_start + int(p2.split("/")[1])
                 len1 = p1_stop - p1_start
                 len2 = p2_stop - p2_start
                 if len1 > len2:
@@ -122,10 +136,10 @@ def resolve_overlaps_with_expansion(positions, d_):
             if i1 == i2:
                 continue
             else:
-                p1_start = int(p1.split('/')[0]) - 1
-                p1_stop = p1_start + int(p1.split('/')[1])
-                p2_start = int(p2.split('/')[0]) - 1
-                p2_stop = p2_start + int(p2.split('/')[1])
+                p1_start = int(p1.split("/")[0]) - 1
+                p1_stop = p1_start + int(p1.split("/")[1])
+                p2_start = int(p2.split("/")[0]) - 1
+                p2_stop = p2_start + int(p2.split("/")[1])
                 if (p1_start <= p2_start) and (p2_start <= p1_stop):
                     ent1 = d_[p1]
                     ent2 = d_[p2]
@@ -139,23 +153,24 @@ def resolve_overlaps_with_expansion(positions, d_):
     return keys_to_remove, merged_entities
 
 
-
 def check_expansion(position, sentence):
     p_start, p_stop = get_chunk(position)
     # Index of the last character of the expanded entity (the end of the sentence if no boundary follows)
     new_p_stop = len(sentence) - 1
     for index in range(p_stop, len(sentence)):
-        #if (sentence[index] in [' ', '(', ')', '<', '>']) or (sentence[index] == '.' and index == len(sentence) - 1):
-        #if (sentence[index] in [' ', ',']) or (sentence[index] == '.' and index == len(sentence) - 1):
-        if (sentence[index] in [' ']) or (sentence[index] == '.' and index == len(sentence) - 1):
+        # if (sentence[index] in [' ', '(', ')', '<', '>']) or (sentence[index] == '.' and index == len(sentence) - 1):
+        # if (sentence[index] in [' ', ',']) or (sentence[index] == '.' and index == len(sentence) - 1):
+        if (sentence[index] in [" "]) or (
+            sentence[index] == "." and index == len(sentence) - 1
+        ):
             new_p_stop = index - 1
             break
 
     new_p_start = p_start
     index = p_start - 1
     while index >= 0:
-        #if (sentence[index] in [' ', '(', ')', '<', '>']):
-        if (sentence[index] in [' ']):
+        # if (sentence[index] in [' ', '(', ')', '<', '>']):
+        if sentence[index] in [" "]:
             break
         new_p_start = index
         index -= 1
@@ -165,7 +180,7 @@ def check_expansion(position, sentence):
     else:
         update = 1
 
-    new_position = str(new_p_start + 1) + '/' + str(new_p_stop - new_p_start + 1)
+    new_position = str(new_p_start + 1) + "/" + str(new_p_stop - new_p_start + 1)
     return update, new_position
 
 
@@ -175,7 +190,7 @@ def expand_entities(entities, sentence):
         update, new_position = check_expansion(k, sentence)
         if update == 1:
             updated_dict[new_position] = entities[k].copy()
-            updated_dict[new_position]['position'] = new_position
+            updated_dict[new_position]["position"] = new_position
         else:
             updated_dict[k] = entities[k].copy()
     return updated_dict

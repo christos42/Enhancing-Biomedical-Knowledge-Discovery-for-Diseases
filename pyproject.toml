@@ -1,0 +1,14 @@
+# Code style settings. Format with `ruff format .` and lint with `ruff check .`.
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+# The directories whose scripts import each other as top-level modules
+src = [".", "annotation", "embedding_learning", "relation_detection", "relation_detection/probing"]
+# Copies of scispacy's files, kept identical to upstream
+extend-exclude = ["UMLS_update_SciSpacy"]
+
+[tool.ruff.lint]
+select = [
+    "I",  # import order (PEP 8)
+]

@@ -1,9 +1,11 @@
 import os
 import sys
+
 import torch
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from utils.training_utils import load_backbone_with_markers, inter_representation
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from utils.training_utils import inter_representation, load_backbone_with_markers
+
 
 class LaMEL(torch.nn.Module):
     def __init__(self, args, device):
@@ -11,23 +13,27 @@ class LaMEL(torch.nn.Module):
 
         self.args = args
         self.device = device
-        self.tokenizer, self.model, hidden_size = load_backbone_with_markers(args.embed_mode)
+        self.tokenizer, self.model, hidden_size = load_backbone_with_markers(
+            args.embed_mode
+        )
 
         self.dropout = torch.nn.Dropout(args.dropout)
-        if self.args.aggregation == 'start_end_start_end':
+        if self.args.aggregation == "start_end_start_end":
             linear_input_size = hidden_size * 2
         else:
             linear_input_size = hidden_size
 
         self.head_projector = torch.nn.Linear(linear_input_size, linear_input_size)
-        self.tail_projector= torch.nn.Linear(linear_input_size, linear_input_size)
-
+        self.tail_projector = torch.nn.Linear(linear_input_size, linear_input_size)
 
     def forward(self, x, entities_range):
-        x = self.tokenizer(x, return_tensors="pt",
-                           padding='longest',
-                           add_special_tokens=True,
-                           is_split_into_words=True).to(self.device)
+        x = self.tokenizer(
+            x,
+            return_tensors="pt",
+            padding="longest",
+            add_special_tokens=True,
+            is_split_into_words=True,
+        ).to(self.device)
         x = self.model(**x)[0]
 
         ent_1_representations, ent_2_representations = [], []
@@ -36,22 +42,26 @@ class LaMEL(torch.nn.Module):
             end_ent_1 = entities_range[i][0][1]
             start_ent_2 = entities_range[i][1][0]
             end_ent_2 = entities_range[i][1][1]
-            if self.args.aggregation == 'ent_context_ent_context':
-                #ent_rep_1 = torch.unsqueeze(torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
-                ent_rep_1 = torch.mean(r1[start_ent_1 + 1:end_ent_1], 0)
-                #ent_rep_2 = torch.unsqueeze(torch.mean(r1[start_ent_2 + 1:end_ent_2], 0), 0)
-                ent_rep_2 = torch.mean(r1[start_ent_2 + 1:end_ent_2], 0)
+            if self.args.aggregation == "ent_context_ent_context":
+                # ent_rep_1 = torch.unsqueeze(torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
+                ent_rep_1 = torch.mean(r1[start_ent_1 + 1 : end_ent_1], 0)
+                # ent_rep_2 = torch.unsqueeze(torch.mean(r1[start_ent_2 + 1:end_ent_2], 0), 0)
+                ent_rep_2 = torch.mean(r1[start_ent_2 + 1 : end_ent_2], 0)
 
                 if self.args.do_train:
                     ent_rep_1 = self.dropout(ent_rep_1)
                     ent_rep_2 = self.dropout(ent_rep_2)
 
-                ent_rep_1 = self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)
-                ent_rep_2 = self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)
+                ent_rep_1 = self.head_projector(ent_rep_1) + self.tail_projector(
+                    ent_rep_1
+                )
+                ent_rep_2 = self.head_projector(ent_rep_2) + self.tail_projector(
+                    ent_rep_2
+                )
 
                 ent_1_representations.append(ent_rep_1)
                 ent_2_representations.append(ent_rep_2)
-            elif self.args.aggregation == 'start_start':
+            elif self.args.aggregation == "start_start":
                 ent_rep_1 = r1[start_ent_1]
                 ent_rep_2 = r1[start_ent_2]
 
@@ -59,12 +69,16 @@ class LaMEL(torch.nn.Module):
                     ent_rep_1 = self.dropout(ent_rep_1)
                     ent_rep_2 = self.dropout(ent_rep_2)
 
-                ent_rep_1 = self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)
-                ent_rep_2 = self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)
+                ent_rep_1 = self.head_projector(ent_rep_1) + self.tail_projector(
+                    ent_rep_1
+                )
+                ent_rep_2 = self.head_projector(ent_rep_2) + self.tail_projector(
+                    ent_rep_2
+                )
 
                 ent_1_representations.append(ent_rep_1)
                 ent_2_representations.append(ent_rep_2)
-            elif self.args.aggregation == 'end_end':
+            elif self.args.aggregation == "end_end":
                 ent_rep_1 = r1[end_ent_1]
                 ent_rep_2 = r1[end_ent_2]
 
@@ -72,12 +86,16 @@ class LaMEL(torch.nn.Module):
                     ent_rep_1 = self.dropout(ent_rep_1)
                     ent_rep_2 = self.dropout(ent_rep_2)
 
-                ent_rep_1 = self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)
-                ent_rep_2 = self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)
+                ent_rep_1 = self.head_projector(ent_rep_1) + self.tail_projector(
+                    ent_rep_1
+                )
+                ent_rep_2 = self.head_projector(ent_rep_2) + self.tail_projector(
+                    ent_rep_2
+                )
 
                 ent_1_representations.append(ent_rep_1)
                 ent_2_representations.append(ent_rep_2)
-            elif self.args.aggregation == 'start_end_start_end':
+            elif self.args.aggregation == "start_end_start_end":
                 ent_rep_1 = torch.cat((r1[start_ent_1], r1[end_ent_1]), 0)
                 ent_rep_2 = torch.cat((r1[start_ent_2], r1[end_ent_2]), 0)
 
@@ -85,8 +103,12 @@ class LaMEL(torch.nn.Module):
                     ent_rep_1 = self.dropout(ent_rep_1)
                     ent_rep_2 = self.dropout(ent_rep_2)
 
-                ent_rep_1 = self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)
-                ent_rep_2 = self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)
+                ent_rep_1 = self.head_projector(ent_rep_1) + self.tail_projector(
+                    ent_rep_1
+                )
+                ent_rep_2 = self.head_projector(ent_rep_2) + self.tail_projector(
+                    ent_rep_2
+                )
 
                 ent_1_representations.append(ent_rep_1)
                 ent_2_representations.append(ent_rep_2)
@@ -103,22 +125,26 @@ class LaMEL_inter(torch.nn.Module):
 
         self.args = args
         self.device = device
-        self.tokenizer, self.model, hidden_size = load_backbone_with_markers(args.embed_mode)
+        self.tokenizer, self.model, hidden_size = load_backbone_with_markers(
+            args.embed_mode
+        )
 
         self.dropout = torch.nn.Dropout(args.dropout)
         inter_input_size = hidden_size
         linear_input_size = hidden_size
 
         self.head_projector = torch.nn.Linear(linear_input_size, linear_input_size)
-        self.tail_projector= torch.nn.Linear(linear_input_size, linear_input_size)
+        self.tail_projector = torch.nn.Linear(linear_input_size, linear_input_size)
         self.head_tail_projector = torch.nn.Linear(inter_input_size, inter_input_size)
 
-
     def forward(self, x, entities_range):
-        x = self.tokenizer(x, return_tensors="pt",
-                           padding='longest',
-                           add_special_tokens=True,
-                           is_split_into_words=True).to(self.device)
+        x = self.tokenizer(
+            x,
+            return_tensors="pt",
+            padding="longest",
+            add_special_tokens=True,
+            is_split_into_words=True,
+        ).to(self.device)
         x = self.model(**x)[0]
 
         ent_1_representations, ent_2_representations = [], []
@@ -127,23 +153,31 @@ class LaMEL_inter(torch.nn.Module):
             end_ent_1 = entities_range[i][0][1]
             start_ent_2 = entities_range[i][1][0]
             end_ent_2 = entities_range[i][1][1]
-            inter_rep = inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2)
-            if self.args.aggregation == 'ent_context_ent_context':
-                #ent_rep_1 = torch.unsqueeze(torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
-                ent_rep_1 = torch.mean(r1[start_ent_1 + 1:end_ent_1], 0)
-                #ent_rep_2 = torch.unsqueeze(torch.mean(r1[start_ent_2 + 1:end_ent_2], 0), 0)
-                ent_rep_2 = torch.mean(r1[start_ent_2 + 1:end_ent_2], 0)
+            inter_rep = inter_representation(
+                r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2
+            )
+            if self.args.aggregation == "ent_context_ent_context":
+                # ent_rep_1 = torch.unsqueeze(torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
+                ent_rep_1 = torch.mean(r1[start_ent_1 + 1 : end_ent_1], 0)
+                # ent_rep_2 = torch.unsqueeze(torch.mean(r1[start_ent_2 + 1:end_ent_2], 0), 0)
+                ent_rep_2 = torch.mean(r1[start_ent_2 + 1 : end_ent_2], 0)
 
                 if self.args.do_train:
                     ent_rep_1 = self.dropout(ent_rep_1)
                     ent_rep_2 = self.dropout(ent_rep_2)
 
-                ent_rep_1 = torch.mul((self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)), self.head_tail_projector(inter_rep))
-                ent_rep_2 = torch.mul((self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)), self.head_tail_projector(inter_rep))
+                ent_rep_1 = torch.mul(
+                    (self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)),
+                    self.head_tail_projector(inter_rep),
+                )
+                ent_rep_2 = torch.mul(
+                    (self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)),
+                    self.head_tail_projector(inter_rep),
+                )
 
                 ent_1_representations.append(ent_rep_1)
                 ent_2_representations.append(ent_rep_2)
-            elif self.args.aggregation == 'start_start':
+            elif self.args.aggregation == "start_start":
                 ent_rep_1 = r1[start_ent_1]
                 ent_rep_2 = r1[start_ent_2]
 
@@ -151,14 +185,18 @@ class LaMEL_inter(torch.nn.Module):
                     ent_rep_1 = self.dropout(ent_rep_1)
                     ent_rep_2 = self.dropout(ent_rep_2)
 
-                ent_rep_1 = torch.mul((self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)),
-                                      self.head_tail_projector(inter_rep))
-                ent_rep_2 = torch.mul((self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)),
-                                      self.head_tail_projector(inter_rep))
+                ent_rep_1 = torch.mul(
+                    (self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)),
+                    self.head_tail_projector(inter_rep),
+                )
+                ent_rep_2 = torch.mul(
+                    (self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)),
+                    self.head_tail_projector(inter_rep),
+                )
 
                 ent_1_representations.append(ent_rep_1)
                 ent_2_representations.append(ent_rep_2)
-            elif self.args.aggregation == 'end_end':
+            elif self.args.aggregation == "end_end":
                 ent_rep_1 = r1[end_ent_1]
                 ent_rep_2 = r1[end_ent_2]
 
@@ -166,14 +204,18 @@ class LaMEL_inter(torch.nn.Module):
                     ent_rep_1 = self.dropout(ent_rep_1)
                     ent_rep_2 = self.dropout(ent_rep_2)
 
-                ent_rep_1 = torch.mul((self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)),
-                                      self.head_tail_projector(inter_rep))
-                ent_rep_2 = torch.mul((self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)),
-                                      self.head_tail_projector(inter_rep))
+                ent_rep_1 = torch.mul(
+                    (self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)),
+                    self.head_tail_projector(inter_rep),
+                )
+                ent_rep_2 = torch.mul(
+                    (self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)),
+                    self.head_tail_projector(inter_rep),
+                )
 
                 ent_1_representations.append(ent_rep_1)
                 ent_2_representations.append(ent_rep_2)
-            elif self.args.aggregation == 'start_end_start_end':
+            elif self.args.aggregation == "start_end_start_end":
                 ent_rep_1 = torch.mul(r1[start_ent_1], r1[end_ent_1])
                 ent_rep_2 = torch.mul(r1[start_ent_2], r1[end_ent_2])
 
@@ -181,10 +223,14 @@ class LaMEL_inter(torch.nn.Module):
                     ent_rep_1 = self.dropout(ent_rep_1)
                     ent_rep_2 = self.dropout(ent_rep_2)
 
-                ent_rep_1 = torch.mul((self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)),
-                                      self.head_tail_projector(inter_rep))
-                ent_rep_2 = torch.mul((self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)),
-                                      self.head_tail_projector(inter_rep))
+                ent_rep_1 = torch.mul(
+                    (self.head_projector(ent_rep_1) + self.tail_projector(ent_rep_1)),
+                    self.head_tail_projector(inter_rep),
+                )
+                ent_rep_2 = torch.mul(
+                    (self.head_projector(ent_rep_2) + self.tail_projector(ent_rep_2)),
+                    self.head_tail_projector(inter_rep),
+                )
 
                 ent_1_representations.append(ent_rep_1)
                 ent_2_representations.append(ent_rep_2)

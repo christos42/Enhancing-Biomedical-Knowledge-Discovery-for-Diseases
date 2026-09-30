@@ -1,13 +1,15 @@
 import os
-import sys
-from torch.utils.data import Dataset, DataLoader
 import random
+import sys
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from utils.utils import read_json
+from torch.utils.data import DataLoader, Dataset
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from utils.training_utils import CV, load_tokenizer_with_markers
+from utils.utils import read_json
 
-class collater_1():
+
+class collater_1:
     def __init__(self):
         pass
 
@@ -27,16 +29,19 @@ class DataProcess(Dataset):
         # Same checkpoint as the model, so that the sub-word offsets match its tokenization
         self.tokenizer = load_tokenizer_with_markers(embed_mode)
 
+        self.mapping_target = {
+            "No Relation": -1,
+            "Positive Relation": 1,
+            "Complex Relation": 1,
+            "Negative Relation": 1,
+        }
 
-        self.mapping_target = {'No Relation': -1,
-                               'Positive Relation': 1,
-                               'Complex Relation': 1,
-                               'Negative Relation': 1}
-
-        self.mapping_relation = {'No Relation': 0,
-                                 'Positive Relation': 1,
-                                 'Complex Relation': 1,
-                                 'Negative Relation': 1}
+        self.mapping_relation = {
+            "No Relation": 0,
+            "Positive Relation": 1,
+            "Complex Relation": 1,
+            "Negative Relation": 1,
+        }
 
     def __len__(self):
         return len(self.data)
@@ -47,16 +52,15 @@ class DataProcess(Dataset):
         target = self.mapping_target[self.data[idx][2]]
         relation = self.mapping_relation[self.data[idx][2]]
 
-        #sent_str = ' '.join(words)
-        #bert_words = self.tokenizer.tokenize(sent_str)
+        # sent_str = ' '.join(words)
+        # bert_words = self.tokenizer.tokenize(sent_str)
         # bert_len = original sentence + [CLS] and [SEP]
-        #bert_len = len(bert_words) + 2
+        # bert_len = len(bert_words) + 2
 
         word_to_bep = self.map_origin_word_to_bert(words)
         new_entities_range = self.ner_label_transform(entities_range, word_to_bep)
 
         return (words, new_entities_range, target, relation)
-
 
     def map_origin_word_to_bert(self, words):
         bep_dict = {}
@@ -83,9 +87,9 @@ def data_preprocess(keys, data):
     processed = []
     for k in keys:
         dic = data[k]
-        text = dic['updated_tokens']
-        entities = dic['updated_entities']
-        relation = dic['relation']
+        text = dic["updated_tokens"]
+        entities = dic["updated_entities"]
+        relation = dic["relation"]
 
         processed += [(text, entities, relation)]
     return processed
@@ -147,11 +151,26 @@ def dataloader(args):
 
     collate_fn = collater_1()
 
-    train_batch = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True,
-                             collate_fn=collate_fn)
-    test_batch = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                            collate_fn=collate_fn)
-    dev_batch = DataLoader(dataset=dev_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                           collate_fn=collate_fn)
+    train_batch = DataLoader(
+        dataset=train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        pin_memory=True,
+        collate_fn=collate_fn,
+    )
+    test_batch = DataLoader(
+        dataset=test_dataset,
+        batch_size=args.eval_batch_size,
+        shuffle=False,
+        pin_memory=True,
+        collate_fn=collate_fn,
+    )
+    dev_batch = DataLoader(
+        dataset=dev_dataset,
+        batch_size=args.eval_batch_size,
+        shuffle=False,
+        pin_memory=True,
+        collate_fn=collate_fn,
+    )
 
     return train_batch, test_batch, dev_batch
