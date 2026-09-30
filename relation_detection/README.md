@@ -17,7 +17,7 @@ Install them with ```pip install -r requirements.txt```.
 
 ### Execution steps
  - Run ```main.py [--dataset_path] [--dataset_path_eval] [--dataset_path_train] [--dataset_path_dev] [--dataset_path_test] 
-   --do_train --do_eval --do_cross_disease_training --model_id --epoch --batch_size --eval_batch_size --embed_mode 
+   --do_train --do_eval --do_end_to_end_training --do_cross_disease_training --model_id --epoch --batch_size --eval_batch_size --embed_mode 
    --exp_setting --eval_metric --lr --weight_decay --seed --dropout --do_gradient_clipping --clip --steps --output_dir
    --output_file --sentence_wise_splits --do_cross_validation --fold --aggregation --save_best_weights 
    --use_distantly_supervised_data --projection_dimension``` to train and evaluate the models. 
@@ -27,9 +27,11 @@ Install them with ```pip install -r requirements.txt```.
      datasets are different files. The argument is used when cross-disease training and evaluation is applied.
    - dataset_path_train (string): the path of the training dataset (original split setup)
    - dataset_path_dev (string): the path of the development dataset (original split setup)
-   - dataset_path_train (string): the path of the test dataset (original split setup)
+   - dataset_path_test (string): the path of the test dataset (original split setup)
    - do_train (store_value): boolean value to define if the training session is executed.
    - do_eval (store_value): boolean value to define if the evaluation session is executed.
+   - do_end_to_end_training (store_value): boolean value to define if end-to-end mode is applied: training on
+     the whole dataset_path (no development set) and evaluation on dataset_path_eval.
    - do_cross_disease_training (store_value): boolean value to define if cross-disease mode is applied.
    - model_id (int): the model id for the model selection, precisely:
      - 1: for the LaMReDA model

@@ -18,7 +18,7 @@ Install them with ```pip install -r requirements.txt```.
 ### Execution steps
  - Run ```main.py [--dataset_path] [--dataset_path_eval] [--dataset_path_train] [--dataset_path_dev] [--dataset_path_test] 
    --do_train --do_eval --do_cross_disease_training --model_id --epoch --batch_size --eval_batch_size --embed_mode 
-   --exp_setting --eval_metric --lr --weight_decay --seed --dropout --do_gradient_clipping --clip --steps --margin 
+   --lr --weight_decay --seed --dropout --do_gradient_clipping --clip --steps --margin 
    --threshold --output_dir --output_file --sentence_wise_splits --do_cross_validation --fold --aggregation``` 
    to train and evaluate the models. [NOTE 1]
    Arguments:
@@ -27,7 +27,7 @@ Install them with ```pip install -r requirements.txt```.
      datasets are different files. The argument is used when cross-disease training and evaluation is applied.
    - dataset_path_train (string): the path of the training dataset (original split setup)
    - dataset_path_dev (string): the path of the development dataset (original split setup)
-   - dataset_path_train (string): the path of the test dataset (original split setup)
+   - dataset_path_test (string): the path of the test dataset (original split setup)
    - do_train (store_value): boolean value to define if the training session is executed.
    - do_eval (store_value): boolean value to define if the evaluation session is executed.
    - do_cross_disease_training (store_value): boolean value to define if cross-disease mode is applied.
@@ -39,8 +39,6 @@ Install them with ```pip install -r requirements.txt```.
    - eval_batch_size (int): the batch size for the evaluation session
    - embed_mode (string): the backbone Language Model, "BiomedBERT_base", "BiomedBERT_large", "BioLinkBERT_base", 
      "BioLinkBERT_large", "BioGPT_base" and "BioGPT_large" are supported.
-   - exp_setting (string): the experimental setting for the task (correlation detection): binary or multi_class
-   - eval_metric (string): micro or macro evaluation (f1-score)
    - lr (float): the learning rate
    - weight_decay (float): weight decaying rate
    - seed (int): random seed initialization 

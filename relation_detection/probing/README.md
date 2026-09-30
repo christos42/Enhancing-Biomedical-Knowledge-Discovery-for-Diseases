@@ -14,14 +14,17 @@ Install them with ```pip install -r ../requirements.txt```.
 ---
 
 ### Execution steps
- - Run ```main.py --dataset_path --do_train --do_eval --model_id --epoch --batch_size --eval_batch_size --embed_mode 
+ - Run ```main.py --dataset_path [--dataset_path_eval] --do_train --do_eval [--do_cross_disease_training] --model_id --epoch --batch_size --eval_batch_size --embed_mode 
    --exp_setting --eval_metric --lr --weight_decay --seed --dropout --do_gradient_clipping --clip --steps --output_dir
    --output_file --sentence_wise_splits --fold --aggregation --encoding_layer --attention_head``` 
    to train and evaluate the models. [NOTE 1]
    Arguments:
    - dataset_path (string): the path of the dataset
+   - dataset_path_eval (string): the path of the evaluation dataset in case that the training and evaluation 
+     datasets are different files. The argument is used when cross-disease training and evaluation is applied.
    - do_train (store_value): boolean value to define if the training session is executed.
    - do_eval (store_value): boolean value to define if the evaluation session is executed.
+   - do_cross_disease_training (store_value): boolean value to define if cross-disease mode is applied.
    - model_id (int): the model id for the model selection, precisely:
      - 1: for the LMREA model (aggregation: addition)
      - 2: for the LMREAProj model (aggregation: addition) with linear projection layer before the classification layer

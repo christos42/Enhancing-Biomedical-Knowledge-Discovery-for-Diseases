@@ -195,7 +195,7 @@ if __name__ == "__main__":
         default="datasets/",
         type=str,
         required=False,
-        help="the path to the merged extracted entities",
+        help="the folder with the datasets of step 3",
     )
 
     args = parser.parse_args()

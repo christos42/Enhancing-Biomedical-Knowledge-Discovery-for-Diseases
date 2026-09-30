@@ -153,7 +153,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--do_end_to_end_training",
         action="store_true",
-        help="whether cross-disease training/evaluation is applied",
+        help="whether end-to-end training/evaluation is applied",
     )
 
     parser.add_argument(

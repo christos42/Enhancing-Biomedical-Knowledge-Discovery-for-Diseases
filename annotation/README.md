@@ -34,10 +34,11 @@ Install them with ```pip install -r requirements.txt```.
   - abstract_path (string): the path to the abstract file
   - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
   - annotator (string): the name of the annotator/expert
-- Run ```python 4_dataset_processing.py --annotator --disease_name``` to process the dataset; tokenize the sentences, add the special tokens, update the entity spans.
+- Run ```python 4_dataset_processing.py --annotator --disease_name [--dataset_path]``` to process the dataset; tokenize the sentences, add the special tokens, update the entity spans.
   Arguments:
   - annotator (string): the name of the annotator/expert
   - disease_name (string): the name of the disease (i.e. <i>rett_syndrome</i> or <i>alzheimer_s_disease</i>)
+  - dataset_path (string) (optional, default value: <i>datasets/</i>): the folder with the datasets of step 3
 
 #### Datasets
 - [NOTE 1] : The ReDReS and ReDAD datasets are available [here](https://drive.google.com/file/d/1PRVORwFszsPfCylzYd0XY1JKZLRgLCtV/view?usp=sharing).
