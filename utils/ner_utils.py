@@ -1,3 +1,5 @@
+"""Helpers to merge the SciSpacy NER and linking outputs (steps 5 to 7)."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -9,11 +11,13 @@ if TYPE_CHECKING:
 
 
 def display_ner(nlp: Language, sent: str) -> None:
+    """Serve a displaCy visualization of the entities found in ``sent``."""
     doc = nlp(sent)
     displacy.serve(doc, style="ent")
 
 
 def find_similarity(nlp: Language, en1: str, en2: str) -> float:
+    """Return the word-vector similarity of two texts."""
     # word2vec based
     doc1 = nlp(en1)
     doc2 = nlp(en2)
@@ -21,6 +25,7 @@ def find_similarity(nlp: Language, en1: str, en2: str) -> float:
 
 
 def union_lists(l1: list[Any], l2: list[Any]) -> list[Any]:
+    """Return the items of ``l1`` and then of ``l2``, without duplicates."""
     union = []
     for it in l1:
         if it not in union:
@@ -35,6 +40,12 @@ def union_lists(l1: list[Any], l2: list[Any]) -> list[Any]:
 def union_lists_pairs(
     l1: list[Any], l2: list[Any], l3: list[Any], l4: list[Any]
 ) -> tuple[list[Any], list[Any]]:
+    """Unite ``l1`` and ``l2``, carrying along the aligned items of ``l3`` and ``l4``.
+
+    Returns:
+        The union of ``l1`` and ``l2``, and for each of its items the item at the same
+        index of ``l3`` (items from ``l1``) or ``l4`` (items from ``l2``).
+    """
     l_un_1, l_un_2 = [], []
     for i, it in enumerate(l1):
         if it not in l_un_1:
@@ -51,6 +62,11 @@ def union_lists_pairs(
 def merge_entity_pos_tags_dicts(
     dict1: dict[str, Any], dict2: dict[str, Any]
 ) -> dict[str, Any]:
+    """Combine the outputs of two SciSpacy NER models for the same sentences.
+
+    The entities (with their linked concepts) and the POS tags are united; the tokenized
+    sentences are kept per model.
+    """
     dict_: dict[str, Any] = {}
     for k1 in dict1:
         dict_[k1] = {}
@@ -96,6 +112,12 @@ def merge_linkers_scispacy(
     d_ncbi: dict[str, Any],
     d_snomed: dict[str, Any],
 ) -> dict[str, Any]:
+    """Combine the step 5 outputs of the nine linkers.
+
+    The entities are the same in every output, since the same NER models produced them.
+    For each entity, the linked concepts of every knowledge base are gathered under the
+    knowledge base's name.
+    """
     d_merged: dict[str, Any] = {}
     for k1 in d_umls:
         d_merged[k1] = {}
@@ -136,6 +158,10 @@ def merge_linkers_scispacy(
 
 
 def get_grouped_ne_tag_scispacy(tag: str) -> str:
+    """Map a SciSpacy entity label to its group (e.g. SIMPLE_CHEMICAL to CHEMICAL).
+
+    Labels outside the groups are returned unchanged.
+    """
     tag_grouping = {
         "CHEMICAL": ["CHEBI", "CHEMICAL", "SIMPLE_CHEMICAL"],
         "CELL": ["CL", "CELL_TYPE", "CELL_LINE", "CELL"],
@@ -158,6 +184,12 @@ def get_grouped_ne_tag_scispacy(tag: str) -> str:
 
 
 def merge_same_entities_scispacy(data: dict[str, Any]) -> dict[str, Any]:
+    """Merge the entities that several NER models found at the same span.
+
+    Returns:
+        The data with, for each sentence, one entity per (text, start, end), listing the
+        types, grouped types and models that found it.
+    """
     data_entity_merging: dict[str, Any] = {}
     for k1 in data:
         data_entity_merging[k1] = {}

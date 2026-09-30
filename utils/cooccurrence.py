@@ -1,9 +1,20 @@
+"""Co-occurrence counts of concept pairs: the edges of the knowledge graph."""
+
 from __future__ import annotations
 
 from typing import Any
 
 
 def get_cooccurrence_dict_metamap(data: dict[str, Any]) -> dict[str, Any]:
+    """Count the co-occurring concept pairs of the MetaMap pipeline.
+
+    Args:
+        data: Sentence id -> position -> merged MetaMap entity (step 6).
+
+    Returns:
+        ``<cui1>_<cui2>`` -> the pair's frequency, CUIs, preferred names, semantic types
+        and the ids of the sentences it occurs in, by decreasing frequency.
+    """
     freq_pairs: dict[str, dict[str, Any]] = {}
     for k1 in data:
         for i, ent1_ in enumerate(list(data[k1].keys())):
@@ -48,6 +59,18 @@ def get_cooccurrence_dict_metamap(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_cooccurrence_dict(data: dict[str, Any]) -> dict[str, Any]:
+    """Count the co-occurring concept pairs of the SciSpacy pipeline.
+
+    Every combination of the linked concepts of two entities of a sentence is counted.
+
+    Args:
+        data: PMID -> sentence id -> sentence with its ``sampled_linked_entities`` (step
+            8).
+
+    Returns:
+        ``<cui1>_<cui2>`` -> the pair's frequency, CUIs, names, aliases, descriptions
+        and the ids of the sentences it occurs in, by decreasing frequency.
+    """
     freq_pairs: dict[str, dict[str, Any]] = {}
     for k1 in data:
         for k2 in data[k1]:
@@ -94,6 +117,10 @@ def get_cooccurrence_dict(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_cooccurrence_narrow_dict(data: dict[str, Any]) -> dict[str, Any]:
+    """Count the co-occurring concept pairs, using each entity's first linked concept.
+
+    See get_cooccurrence_dict for the arguments and the result.
+    """
     freq_pairs: dict[str, dict[str, Any]] = {}
     for k1 in data:
         for k2 in data[k1]:
@@ -136,6 +163,7 @@ def get_cooccurrence_narrow_dict(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_unique_cuis_metamap(data: dict[str, Any]) -> list[str]:
+    """Return the unique CUIs of the MetaMap pipeline, in order of appearance."""
     # Used as an insertion-ordered set: constant-time membership, unlike a list
     unique_cuis: dict[str, None] = {}
     for k1 in data:
@@ -149,6 +177,7 @@ def get_unique_cuis_metamap(data: dict[str, Any]) -> list[str]:
 
 
 def get_unique_cuis(data: dict[str, Any]) -> list[str]:
+    """Return the unique linked CUIs of the SciSpacy pipeline, in order."""
     # Used as an insertion-ordered set: constant-time membership, unlike a list
     unique_cuis: dict[str, None] = {}
     for k1 in data:
@@ -161,6 +190,7 @@ def get_unique_cuis(data: dict[str, Any]) -> list[str]:
 
 
 def get_unique_cuis_narrow(data: dict[str, Any]) -> list[str]:
+    """Return the unique first linked CUIs of the SciSpacy pipeline, in order."""
     # Used as an insertion-ordered set: constant-time membership, unlike a list
     unique_cuis: dict[str, None] = {}
     for k1 in data:

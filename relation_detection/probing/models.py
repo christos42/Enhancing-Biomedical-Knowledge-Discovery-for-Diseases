@@ -1,3 +1,5 @@
+"""Probing models: classifiers on the frozen representations of a language model."""
+
 from __future__ import annotations
 
 import argparse
@@ -11,6 +13,16 @@ from utils.training_utils import atlop_context_vector, load_frozen_backbone
 
 
 class LMREA(torch.nn.Module):
+    """Probe on the sum of the two entity representations.
+
+    With ``args.aggregation`` set to ``atlop_context_vector``, the ATLOP context vector
+    is added; with ``atlop_context_vector_only``, it is used alone.
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -35,6 +47,13 @@ class LMREA(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> torch.Tensor:
+        """Return the relation logits of a batch.
+
+        Args:
+            x: The words of each sentence.
+            entities_range: For each sentence, the first and last sub-word positions of
+                its two entities.
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",
@@ -103,6 +122,13 @@ class LMREA(torch.nn.Module):
 
 
 class LMREAProj(torch.nn.Module):
+    """Like LMREA, with head and tail projections before the classification layer.
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -136,6 +162,13 @@ class LMREAProj(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> torch.Tensor:
+        """Return the relation logits of a batch.
+
+        Args:
+            x: The words of each sentence.
+            entities_range: For each sentence, the first and last sub-word positions of
+                its two entities.
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",
@@ -214,6 +247,16 @@ class LMREAProj(torch.nn.Module):
 
 
 class LMREM(torch.nn.Module):
+    """Probe on the element-wise product of the two entity representations.
+
+    With ``args.aggregation`` set to ``atlop_context_vector``, the product is also
+    multiplied by the ATLOP context vector.
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -238,6 +281,13 @@ class LMREM(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> torch.Tensor:
+        """Return the relation logits of a batch.
+
+        Args:
+            x: The words of each sentence.
+            entities_range: For each sentence, the first and last sub-word positions of
+                its two entities.
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",
@@ -296,6 +346,13 @@ class LMREM(torch.nn.Module):
 
 
 class LMREMProj(torch.nn.Module):
+    """Like LMREM, with head and tail projections before the classification layer.
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -329,6 +386,13 @@ class LMREMProj(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> torch.Tensor:
+        """Return the relation logits of a batch.
+
+        Args:
+            x: The words of each sentence.
+            entities_range: For each sentence, the first and last sub-word positions of
+                its two entities.
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",
@@ -393,6 +457,17 @@ class LMREMProj(torch.nn.Module):
 
 
 class LMREAttention(torch.nn.Module):
+    """Probe on the attention scores between the two entities.
+
+    Depending on ``args.aggregation``, the scores come from the heads of one layer
+    (``layer_specific``), from one head of every layer (``head_specific``) or from all
+    the heads of all the layers (``non_specific``).
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -430,6 +505,13 @@ class LMREAttention(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> torch.Tensor:
+        """Return the relation logits of a batch.
+
+        Args:
+            x: The words of each sentence.
+            entities_range: For each sentence, the first and last sub-word positions of
+                its two entities.
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",

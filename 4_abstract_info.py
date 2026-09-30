@@ -1,3 +1,5 @@
+"""Step 4: report the number of abstracts per disease and plot the articles per year."""
+
 import argparse
 
 from utils.pubmed import Abstract

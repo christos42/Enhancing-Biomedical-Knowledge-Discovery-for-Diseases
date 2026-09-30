@@ -1,3 +1,5 @@
+"""SciSpacy entity extraction and linking (step 5 of the SciSpacy pipeline)."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -12,6 +14,14 @@ if TYPE_CHECKING:
 
 
 class MentionsExtractorSciSpacy:
+    """A SciSpacy NER model with an entity linker.
+
+    Args:
+        type: The NER model: ``craft``, ``bc5cdr``, ``jnlpba`` or ``bionlp13cg``.
+        linker_type: The knowledge base to link to: ``umls``, ``mesh``, ``rxnorm``,
+            ``go``, ``hpo``, ``drugbank``, ``gs``, ``ncbi`` or ``snomed``.
+    """
+
     def __init__(self, type: str, linker_type: str) -> None:
         self.type = type
         self.linker_type = linker_type
@@ -19,6 +29,11 @@ class MentionsExtractorSciSpacy:
         self.linker = self.nlp.get_pipe("scispacy_linker")
 
     def load_nlp_model(self) -> Language:
+        """Load the NER model and add the entity linker to it.
+
+        Raises:
+            ValueError: If the NER model type is unknown.
+        """
         if self.type == "craft":
             nlp = spacy.load("en_ner_craft_md")
         elif self.type == "bc5cdr":
@@ -119,6 +134,17 @@ class MentionsExtractorSciSpacy:
         return nlp
 
     def extract_entities_pos_tags(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Extract the entities, their linked concepts and the nouns of every sentence.
+
+        Args:
+            data: PMID -> abstract with its ``abstract_tokenized`` and ``sentence_ids``
+                (step 3).
+
+        Returns:
+            PMID -> sentence id -> the entities (text, label, start and end token,
+            model), their linked concepts, the nouns and proper nouns, and the tokenized
+            sentence.
+        """
         info: dict[str, dict[str, Any]] = {id_: {} for id_ in data}
         # Stream all sentences through nlp.pipe in batches (same documents as calling
         # self.nlp per sentence)
@@ -158,6 +184,7 @@ class MentionsExtractorSciSpacy:
     def get_expanded_entity_linking(
         self, entity: Span
     ) -> dict[str, dict[str, list[Any]]]:
+        """Return the linked concepts of an entity, under the knowledge base's name."""
         linked_info = {}
         cui_l, name_l, aliases_l, tui_l, descr_l, prob_l = self.get_entity_linking(
             entity
@@ -173,6 +200,10 @@ class MentionsExtractorSciSpacy:
         return linked_info
 
     def get_entity_linking(self, entity: Span) -> tuple[list[Any], ...]:
+        """Return the details of an entity's linked concepts, as parallel lists.
+
+        The lists are the CUIs, names, aliases, types, definitions and scores.
+        """
         cui_l, name_l, aliases_l, tui_l, descr_l, prob_l = [], [], [], [], [], []
         for code_ent in entity._.kb_ents:
             cui_, name_, aliases_, tui_, descr_ = self.linker.kb.cui_to_entity[
@@ -189,6 +220,10 @@ class MentionsExtractorSciSpacy:
     def find_unique_entities(
         self, ent_l: list[tuple[Any, ...]], linked_l: list[dict[str, Any]]
     ) -> tuple[list[tuple[Any, ...]], list[dict[str, Any]]]:
+        """Drop the entities whose (text, label) was already seen.
+
+        Their linked concepts are dropped with them.
+        """
         ent_l_unique, linked_l_unique, checked = [], [], []
         for i, en in enumerate(ent_l):
             if (en[0], en[1]) in checked:

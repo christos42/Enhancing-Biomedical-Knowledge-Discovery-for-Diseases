@@ -1,3 +1,8 @@
+"""Train and evaluate the relation detection models (LaMReDA and LaMReDM).
+
+The arguments are described in README.md, and run_scripts/ has examples.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -32,6 +37,17 @@ def evaluate(
     args: argparse.Namespace,
     test_or_dev: str,
 ) -> tuple[float, float, float, float, torch.Tensor | float]:
+    """Evaluate the module-level ``model`` on a data loader and log the results.
+
+    Args:
+        test_batch: The data loader.
+        loss_fn: The loss function.
+        args: The experiment arguments.
+        test_or_dev: The name of the split, for the log.
+
+    Returns:
+        The precision, recall, F1, F0.5 and average loss.
+    """
     steps = 0
     test_loss: torch.Tensor | float = 0
     all_predictions, all_gold_labels = [], []

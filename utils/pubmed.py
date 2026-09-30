@@ -1,3 +1,5 @@
+"""PubMed search and abstract retrieval through the NCBI Entrez API."""
+
 from __future__ import annotations
 
 import collections
@@ -10,6 +12,13 @@ from Bio import Entrez
 
 
 class PubMed:
+    """Search PubMed and retrieve abstracts.
+
+    Args:
+        query: The query terms, combined with OR.
+        start: The index of the first search result to return.
+    """
+
     def __init__(self, query: Sequence[str], start: int = 0) -> None:
         if len(query) == 1:
             self.query = query[0]
@@ -19,6 +28,11 @@ class PubMed:
         self.start_date, self.end_date = self.get_start_end_dates()
 
     def get_start_end_dates(self) -> tuple[list[str], list[str]]:
+        """Return the monthly date windows used to split large searches.
+
+        There is one window per month, from January 1900 to December of the current
+        year.
+        """
         start_dates = []
         end_dates = []
         for y in range(1900, date.today().year + 1):
@@ -30,6 +44,15 @@ class PubMed:
         return start_dates, end_dates
 
     def search(self, mindate: str, maxdate: str) -> Any:
+        """Search PubMed by publication date (up to 10,000 results, by relevance).
+
+        Args:
+            mindate: The start of the date range (``YYYY/M``), or empty for no limit.
+            maxdate: The end of the date range, or empty for no limit.
+
+        Returns:
+            The Entrez search result (``IdList``, ``Count``, ...).
+        """
         Entrez.email = ""
         handle = Entrez.esearch(
             db="pubmed",
@@ -47,6 +70,7 @@ class PubMed:
         return results
 
     def fetch_details(self, id_list: list[str]) -> Any:
+        """Fetch the PubMed records of the given PMIDs."""
         id_list_c = self.check_ids(id_list)
         ids = ",".join(id_list_c)
         Entrez.email = ""
@@ -56,6 +80,13 @@ class PubMed:
         return results
 
     def retrieve_abstracts(self, id_list: list[str]) -> dict[str, dict[str, Any]]:
+        """Return the date, title and abstract of the given PMIDs.
+
+        Articles without an abstract are skipped.
+
+        Returns:
+            PMID -> ``{"date", "title", "abstract"}``.
+        """
         d = self.fetch_details(id_list)
         abstracts = {}
         for doc in d["PubmedArticle"]:
@@ -126,11 +157,23 @@ class PubMed:
         return abstracts
 
     def total_number_of_docs(self) -> str:
+        """Print and return the number of search results.
+
+        The number is a string, as Entrez returns it.
+        """
         s = self.search("", "")
         print("Total number of documents: {}".format(s["Count"]))
         return s["Count"]
 
     def retrieve_all_ids(self, print_logging: int = 0) -> tuple[list[str], list[str]]:
+        """Search every monthly date window and return the unique PMIDs.
+
+        Args:
+            print_logging: If 1, print the number of results of each window.
+
+        Returns:
+            The unique numeric PMIDs, and the number of results of each window.
+        """
         ids, n_ids_per_search = [], []
         for s_d, e_d in zip(self.start_date, self.end_date):
             s = self.search(s_d, e_d)
@@ -148,12 +191,14 @@ class PubMed:
         return unique_ids_c, n_ids_per_search
 
     def fetch_details_all_ids(self) -> Any:
+        """Fetch the PubMed records of all the PMIDs of the query."""
         ids, _ = self.retrieve_all_ids()
         res = self.fetch_details(ids)
 
         return res
 
     def retrieve_all_abstracts(self) -> dict[str, dict[str, Any]]:
+        """Return the date, title and abstract of all the articles of the query."""
         ids, _ = self.retrieve_all_ids()
         abstracts = {}
         for i in range(0, len(ids), 5000):
@@ -219,6 +264,7 @@ class PubMed:
         return abstracts
 
     def reform_abstract(self, abstract: list[str]) -> str:
+        """Join the sections of an abstract into one string, normalizing whitespace."""
         reformed_abstract = []
         for doc in abstract:
             reformed_abstract.append(" ".join(doc.split()))
@@ -226,6 +272,18 @@ class PubMed:
         return " ".join(reformed_abstract)
 
     def get_pub_date(self, doc: Any, doc_type: str) -> tuple[str, int]:
+        """Return the ``YYYY/M`` date of a PubMed record and whether it was found.
+
+        For journal articles, the second date of the record's history is used (its
+        PubMed upload); for book articles, the book's publication date.
+
+        Args:
+            doc: The PubMed record.
+            doc_type: ``article`` or ``book_article``.
+
+        Returns:
+            The date (empty if not found), and 1 if it was found, else 0.
+        """
         if doc_type == "article":
             try:
                 # 0: pubstatus: accepted
@@ -255,6 +313,7 @@ class PubMed:
         return date, found
 
     def check_ids(self, ids: list[str]) -> list[str]:
+        """Return the ids that are numeric, printing the others."""
         c_ids = []
         for id_ in ids:
             if id_ == "":
@@ -270,6 +329,13 @@ class PubMed:
 
 
 class PubMedDivide:
+    """Search PubMed one monthly date window at a time, with the abstracts of each.
+
+    Args:
+        query: The query terms, combined with OR.
+        start: The index of the first search result to return.
+    """
+
     def __init__(self, query: Sequence[str], start: int = 0) -> None:
         if len(query) == 1:
             self.query = query[0]
@@ -279,6 +345,11 @@ class PubMedDivide:
         self.start_date, self.end_date = self.get_start_end_dates()
 
     def get_start_end_dates(self) -> tuple[list[str], list[str]]:
+        """Return the monthly date windows used to split large searches.
+
+        There is one window per month, from January 1900 to December of the current
+        year.
+        """
         start_dates = []
         end_dates = []
         for y in range(1900, date.today().year + 1):
@@ -290,6 +361,15 @@ class PubMedDivide:
         return start_dates, end_dates
 
     def search(self, mindate: str, maxdate: str) -> Any:
+        """Search PubMed by publication date (up to 10,000 results, by relevance).
+
+        Args:
+            mindate: The start of the date range (``YYYY/M``), or empty for no limit.
+            maxdate: The end of the date range, or empty for no limit.
+
+        Returns:
+            The Entrez search result (``IdList``, ``Count``, ...).
+        """
         Entrez.email = ""
         handle = Entrez.esearch(
             db="pubmed",
@@ -307,6 +387,7 @@ class PubMedDivide:
         return results
 
     def fetch_details(self, id_list: list[str]) -> Any:
+        """Fetch the PubMed records of the given PMIDs."""
         ids = ",".join(id_list)
         Entrez.email = ""
         handle = Entrez.efetch(db="pubmed", retmode="xml", id=ids)
@@ -315,6 +396,13 @@ class PubMedDivide:
         return results
 
     def retrieve_abstracts(self, id_list: list[str]) -> dict[str, dict[str, Any]]:
+        """Return the date, title and abstract of the given PMIDs.
+
+        Articles without an abstract are skipped.
+
+        Returns:
+            PMID -> ``{"date", "title", "abstract"}``.
+        """
         d = self.fetch_details(id_list)
         abstracts = {}
         for doc in d["PubmedArticle"]:
@@ -373,11 +461,16 @@ class PubMedDivide:
         return abstracts
 
     def total_number_of_docs(self) -> str:
+        """Print and return the number of search results.
+
+        The number is a string, as Entrez returns it.
+        """
         s = self.search("", "")
         print("Total number of documents: {}".format(s["Count"]))
         return s["Count"]
 
     def reform_abstract(self, abstract: list[str]) -> str:
+        """Join the sections of an abstract into one string, normalizing whitespace."""
         reformed_abstract = []
         for doc in abstract:
             reformed_abstract.append(" ".join(doc.split()))
@@ -385,6 +478,18 @@ class PubMedDivide:
         return " ".join(reformed_abstract)
 
     def get_pub_date(self, doc: Any, doc_type: str) -> tuple[str, int]:
+        """Return the ``YYYY/M`` date of a PubMed record and whether it was found.
+
+        For journal articles, the second date of the record's history is used (its
+        PubMed upload); for book articles, the book's publication date.
+
+        Args:
+            doc: The PubMed record.
+            doc_type: ``article`` or ``book_article``.
+
+        Returns:
+            The date (empty if not found), and 1 if it was found, else 0.
+        """
         if doc_type == "article":
             try:
                 # 0: pubstatus: accepted
@@ -414,6 +519,11 @@ class PubMedDivide:
         return date, found
 
     def process(self) -> dict[str, dict[str, dict[str, Any]]]:
+        """Return the abstracts of every monthly date window with results.
+
+        Returns:
+            The start date of the window -> PMID -> abstract.
+        """
         all_abstracts = {}
         for s_d, e_d in zip(self.start_date, self.end_date):
             s = self.search(s_d, e_d)
@@ -427,6 +537,14 @@ class PubMedDivide:
 
 
 class Abstract:
+    """Statistics and plots of the abstracts retrieved for a disease.
+
+    Args:
+        abstract_dict: PMID -> abstract (step 2).
+        disease: The name used in the file names of the plots.
+        output_path: The folder for the plots.
+    """
+
     def __init__(
         self,
         abstract_dict: dict[str, dict[str, Any]],
@@ -438,9 +556,11 @@ class Abstract:
         self.output_path = output_path
 
     def number_of_abstracts(self) -> int:
+        """Return the number of abstracts."""
         return len(list(self.abstract_dict.keys()))
 
     def freq_per_month(self) -> dict[str, int]:
+        """Return the number of articles per ``YYYY/M`` date, sorted by date string."""
         freq: dict[str, int] = {}
         for k in self.abstract_dict:
             date = self.abstract_dict[k]["date"]
@@ -452,6 +572,7 @@ class Abstract:
         return dict(collections.OrderedDict(sorted(freq.items())))
 
     def freq_per_year(self) -> dict[str, int]:
+        """Return the number of articles per year."""
         freq: dict[str, int] = {}
         for k in self.abstract_dict:
             date = self.abstract_dict[k]["date"].split("/")[0]
@@ -463,6 +584,7 @@ class Abstract:
         return dict(collections.OrderedDict(sorted(freq.items())))
 
     def plot_bar_chart_per_year(self) -> None:
+        """Save a bar chart of the number of articles per year."""
         freq = self.freq_per_year()
         fig = plt.figure(figsize=(12, 8))
         ax = fig.add_axes([0, 0, 1, 1])
@@ -478,6 +600,7 @@ class Abstract:
         )
 
     def plot_per_year(self) -> None:
+        """Save a line plot of the number of articles per year."""
         freq = self.freq_per_year()
         fig = plt.figure(figsize=(12, 8))
         ax = fig.add_axes([0, 0, 1, 1])

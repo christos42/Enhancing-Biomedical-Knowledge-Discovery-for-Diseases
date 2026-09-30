@@ -1,3 +1,5 @@
+"""Aggregate the final test results of the probing runs (e.g. over folds)."""
+
 from __future__ import annotations
 
 import argparse
@@ -9,6 +11,16 @@ import numpy as np
 
 
 class Search:
+    """Aggregate the final test results of the runs saved under a folder.
+
+    The results are grouped by the first seven components of each file's path (below
+    ``folder_path``), e.g. over the folds or seeds of a configuration, and averaged.
+
+    Args:
+        folder_path: The folder with the runs' ``.txt`` result files.
+        output_path: The folder for ``overall_results.json``.
+    """
+
     def __init__(self, folder_path: str, output_path: str) -> None:
         self.folder_path = folder_path
         self.output_path = output_path
@@ -17,6 +29,7 @@ class Search:
         self.add_avg_metrics_cv()
 
     def get_files(self) -> list[str]:
+        """Return the paths of all the ``.txt`` files under the folder."""
         training_info_files = []
         for root, _, files in os.walk(self.folder_path, topdown=False):
             for name in files:
@@ -25,6 +38,7 @@ class Search:
         return training_info_files
 
     def build_res_dict(self) -> dict[str, Any]:
+        """Collect the final scores of each results file, grouped by configuration."""
         res_dict: dict[str, Any] = {}
         for f in self.files_to_check:
             with open(f) as f_:
@@ -86,6 +100,7 @@ class Search:
         return res_dict
 
     def add_avg_metrics_cv(self) -> None:
+        """Add the average scores of each configuration."""
         for k1 in self.res_dict.keys():
             for k2 in self.res_dict[k1].keys():
                 for k3 in self.res_dict[k1][k2].keys():
@@ -138,6 +153,7 @@ class Search:
                                         pass
 
     def save_res_dict(self) -> None:
+        """Save the aggregated results to ``overall_results.json``."""
         with open(self.output_path + "overall_results.json", "w") as outfile:
             json.dump(self.res_dict, outfile)
 

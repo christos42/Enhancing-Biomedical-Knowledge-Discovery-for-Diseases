@@ -1,3 +1,10 @@
+"""Clean-up of the MetaMap Lite concepts: filtering, expansion, merging and overlaps.
+
+Positions are MetaMap Lite ``start/length`` strings whose start is one character later
+than in the sentence (pymetamap writes each sentence with a leading quote), hence the
+``- 1`` when converting them.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -7,6 +14,14 @@ if TYPE_CHECKING:
 
 
 def get_entities(d: pd.DataFrame) -> dict[str, dict[str, Any]]:
+    """Return the concepts of a sentence with a score of at least 0.4, by position.
+
+    A concept found at several positions gets an entry per position; when several
+    concepts share a position, the first is kept.
+
+    Args:
+        d: The MetaMap Lite concepts of the sentence (a CSV of step 5).
+    """
     entities = {}
     for r in d.itertuples():
         if r.score < 0.4:
@@ -27,6 +42,7 @@ def get_entities(d: pd.DataFrame) -> dict[str, dict[str, Any]]:
 
 
 def get_chunk(pos: str) -> list[int]:
+    """Return the ``[start, end)`` character range of a MetaMap position."""
     start = int(pos.split("/")[0]) - 1
     stop = start + int(pos.split("/")[1])
     return [start, stop]
@@ -35,6 +51,20 @@ def get_chunk(pos: str) -> list[int]:
 def merge_sequent_entities(
     en1: dict[str, Any], en2: dict[str, Any], chunk1: list[int], chunk2: list[int]
 ) -> dict[str, Any]:
+    """Merge two entities into one that spans both.
+
+    The names are joined with ``||``; the CUIs, semantic types and triggers are combined
+    without duplicates.
+
+    Args:
+        en1: The entity that starts first.
+        en2: The other entity.
+        chunk1: The character range of ``en1``.
+        chunk2: The character range of ``en2``.
+
+    Returns:
+        The merged entity, whose position covers both ranges.
+    """
     m_ent = {
         "preferred_name": en1["preferred_name"] + "||" + en2["preferred_name"],
         "cui": "||".join(
@@ -61,6 +91,15 @@ def merge_sequent_entities(
 def detect_overlaps(
     positions: list[str], d_: dict[str, dict[str, Any]]
 ) -> list[list[int]]:
+    """Group the overlapping entities that have the same CUI.
+
+    Args:
+        positions: The positions of the entities (the keys of ``d_``).
+        d_: Position -> entity.
+
+    Returns:
+        The groups, as indices into ``positions``.
+    """
     overlaps: list[list[int]] = []
     for i1, p1 in enumerate(positions):
         for i2, p2 in enumerate(positions):
@@ -91,6 +130,14 @@ def detect_overlaps(
 def resolve_overlaps(
     positions: list[str], d_: dict[str, dict[str, Any]], overlaps: list[list[int]]
 ) -> list[str]:
+    """Choose which entity of each group of overlapping entities to drop.
+
+    Of the first two entities of a group, the one with the lower score is dropped; on a
+    tie, the shorter one.
+
+    Returns:
+        The positions of the entities to remove.
+    """
     keys_to_remove = []
     for o in overlaps:
         p1 = positions[o[0]]
@@ -144,6 +191,12 @@ def resolve_overlaps(
 def resolve_overlaps_with_expansion(
     positions: list[str], d_: dict[str, dict[str, Any]]
 ) -> tuple[list[list[str]], list[dict[str, Any]]]:
+    """Merge every pair of overlapping entities, whatever their CUIs.
+
+    Returns:
+        The position pairs of the entities that were merged (to remove), and the merged
+        entities.
+    """
     merged_entities = []
     keys_to_remove = []
     for i1, p1 in enumerate(positions):
@@ -168,6 +221,14 @@ def resolve_overlaps_with_expansion(
 
 
 def check_expansion(position: str, sentence: str) -> tuple[int, str]:
+    """Expand an entity to the whole word(s) it is part of.
+
+    The entity is extended backwards to the previous space and forwards to the next
+    space (or to the full stop that ends the sentence).
+
+    Returns:
+        1 if the position changed (else 0), and the new position.
+    """
     p_start, p_stop = get_chunk(position)
     # Index of the last character of the expanded entity (the end of the sentence if no
     # boundary follows)
@@ -204,6 +265,10 @@ def check_expansion(position: str, sentence: str) -> tuple[int, str]:
 def expand_entities(
     entities: dict[str, dict[str, Any]], sentence: str
 ) -> dict[str, dict[str, Any]]:
+    """Expand every entity of a sentence (see check_expansion).
+
+    The entities are keyed by their new positions.
+    """
     updated_dict = {}
     for k in entities:
         update, new_position = check_expansion(k, sentence)

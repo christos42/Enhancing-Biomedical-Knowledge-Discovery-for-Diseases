@@ -1,3 +1,5 @@
+"""Datasets and data loaders of the probing experiments."""
+
 from __future__ import annotations
 
 import argparse
@@ -16,12 +18,15 @@ from utils.utils import read_json
 
 
 class Collater:
+    """Collate a batch into lists of words, entity ranges and relation labels."""
+
     def __init__(self) -> None:
         pass
 
     def __call__(
         self, data: list[tuple[list[str], list[list[int]], int]]
     ) -> list[list[Any]]:
+        """Return the words, entity ranges and labels of a batch as separate lists."""
         words = [item[0] for item in data]
         entities_ranges = [item[1] for item in data]
         relations = [item[2] for item in data]
@@ -30,6 +35,14 @@ class Collater:
 
 
 class DataProcess(Dataset):
+    """Relation examples without entity markers, with sub-word entity ranges.
+
+    Args:
+        data: The (tokens, entity ranges, relation) examples.
+        embed_mode: The backbone (a key of utils.training_utils.PROBING_BACKBONES).
+        exp_setting: ``binary`` or ``multi_class``.
+    """
+
     def __init__(
         self,
         data: list[tuple[list[str], list[list[int]], str]],
@@ -74,6 +87,10 @@ class DataProcess(Dataset):
         return (words, new_entities_range, relation)
 
     def map_origin_word_to_bert(self, words: list[str]) -> dict[int, list[int]]:
+        """Return the first and last sub-word index of each word.
+
+        The indices exclude the special tokens that the tokenizer adds.
+        """
         bep_dict = {}
         current_idx = 0
         for word_idx, word in enumerate(words):
@@ -86,6 +103,10 @@ class DataProcess(Dataset):
     def ner_label_transform(
         self, entities_range: list[list[int]], word_to_bert: dict[int, list[int]]
     ) -> list[list[int]]:
+        """Map word-level entity ranges to sub-word ranges in the model input.
+
+        1 is added for the leading special token.
+        """
         new_entities_range = []
         for r in entities_range:
             # +1 for [CLS]
@@ -100,6 +121,10 @@ class DataProcess(Dataset):
 def data_preprocess(
     keys: Iterable[str], data: dict[str, Any]
 ) -> list[tuple[list[str], list[list[int]], str]]:
+    """Return the (tokens, entity ranges, relation) of the given records.
+
+    The tokens have no entity markers.
+    """
     processed = []
     for k in keys:
         dic = data[k]
@@ -112,6 +137,10 @@ def data_preprocess(
 
 
 def dataloader(args: argparse.Namespace) -> tuple[DataLoader, DataLoader, DataLoader]:
+    """Build the training, test and development data loaders.
+
+    The splits come from cross-disease training or cross-validation.
+    """
     data = read_json(args.dataset_path)
     # Create the fold of keys for training and test (5-fold CV is applied)
     keys = list(data.keys())

@@ -1,3 +1,9 @@
+"""Step 9: build the co-occurrence graph of the linked concepts.
+
+Counts how often two concepts are mentioned in the same sentence, and saves the pairs
+(with their frequencies and sentence ids) and the unique concepts.
+"""
+
 import argparse
 
 from utils.cooccurrence import (

@@ -35,7 +35,11 @@ PROBING_BACKBONES = {
 
 
 def load_tokenizer_with_markers(embed_mode: str) -> PreTrainedTokenizerBase:
-    """The backbone's tokenizer, with the markers [ent] and [/ent] in its vocabulary."""
+    """Load a backbone's tokenizer and add the entity markers ``[ent]`` and ``[/ent]``.
+
+    Args:
+        embed_mode: The backbone (a key of BACKBONES).
+    """
     tokenizer = AutoTokenizer.from_pretrained(BACKBONES[embed_mode][0])
     tokenizer.add_tokens(["[ent]"])
     tokenizer.add_tokens(["[/ent]"])
@@ -45,10 +49,17 @@ def load_tokenizer_with_markers(embed_mode: str) -> PreTrainedTokenizerBase:
 def load_backbone_with_markers(
     embed_mode: str,
 ) -> tuple[PreTrainedTokenizerBase, PreTrainedModel, int]:
-    """The backbone's tokenizer and language model, and its hidden size.
+    """Load a backbone's tokenizer and language model, with the entity markers added.
 
-    The embeddings of the added [ent] and [/ent] tokens are initialized randomly (using
-    a fixed seed)."""
+    The embeddings of ``[ent]`` and ``[/ent]`` are initialized with small random values,
+    drawn with a fixed seed that is independent of ``--seed``.
+
+    Args:
+        embed_mode: The backbone (a key of BACKBONES).
+
+    Returns:
+        The tokenizer, the language model and its hidden size.
+    """
     checkpoint, hidden_size = BACKBONES[embed_mode]
     tokenizer = load_tokenizer_with_markers(embed_mode)
     model = AutoModel.from_pretrained(checkpoint)
@@ -84,8 +95,14 @@ def load_backbone_with_markers(
 def load_frozen_backbone(
     embed_mode: str,
 ) -> tuple[PreTrainedTokenizerBase, PreTrainedModel, int]:
-    """A probing backbone's tokenizer, its language model (all layers frozen) and its
-    hidden size."""
+    """Load a probing backbone's tokenizer and language model, with its layers frozen.
+
+    Args:
+        embed_mode: The backbone (a key of PROBING_BACKBONES).
+
+    Returns:
+        The tokenizer, the language model and its hidden size.
+    """
     checkpoint, hidden_size = PROBING_BACKBONES[embed_mode]
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     model = AutoModel.from_pretrained(checkpoint)
@@ -99,10 +116,18 @@ def load_frozen_backbone(
 def inter_representation(
     r1: torch.Tensor, start_ent_1: int, end_ent_1: int, start_ent_2: int, end_ent_2: int
 ) -> torch.Tensor:
-    """Mean representation of the tokens between the two entities.
+    """Return the mean representation of the tokens between two entities.
 
     When nothing is between them (adjacent or overlapping entities), the mean of their
-    start tokens is used."""
+    start tokens is used.
+
+    Args:
+        r1: The token representations of the sentence (tokens x hidden size).
+        start_ent_1: The first token of the first entity.
+        end_ent_1: The last token of the first entity.
+        start_ent_2: The first token of the second entity.
+        end_ent_2: The last token of the second entity.
+    """
     if end_ent_1 + 1 == start_ent_2:
         return torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
     elif end_ent_2 + 1 == start_ent_1:
@@ -120,11 +145,18 @@ def atlop_context_vector(
     head_span: tuple[int, int],
     tail_span: tuple[int, int],
 ) -> torch.Tensor:
-    """ATLOP-style context vector of an entity pair.
+    """Return the ATLOP-style context vector of an entity pair.
 
-    attentions: one example's attention scores of a layer (heads x tokens x tokens);
-    r1: its token representations; head_span, tail_span: inclusive (start, end) token
-    positions whose attention rows represent each entity."""
+    The token representations are averaged, weighted by the product of the two entities'
+    attention to each token (averaged over the heads and normalized).
+
+    Args:
+        attentions: One example's attention scores of a layer (heads x tokens x tokens).
+        r1: The example's token representations (tokens x hidden size).
+        head_span: The inclusive (start, end) positions of the attention rows of the
+            first entity.
+        tail_span: The same, for the second entity.
+    """
     # extract attentions of the two entities and sequence
     head_attentions = torch.mean(attentions[:, head_span[0] : head_span[1] + 1, :], 1)
     tail_attentions = torch.mean(attentions[:, tail_span[0] : tail_span[1] + 1, :], 1)
@@ -144,11 +176,25 @@ def atlop_context_vector(
 
 
 class CV:
+    """K-fold cross-validation splits of the dataset records.
+
+    The records are split in their order (they are not shuffled).
+
+    Args:
+        keys: The record keys (``<pmid>_<sentence>_rec_<n>``).
+        k: The number of folds.
+    """
+
     def __init__(self, keys: list[str], k: int) -> None:
         self.keys = keys
         self.k = k
 
     def get_cv_splits(self, fold: int) -> tuple[list[str], list[str]]:
+        """Return the training and test keys of ``fold``.
+
+        The records are split into k consecutive folds; the last fold also gets the
+        remaining records.
+        """
         splits = []
         step = len(self.keys) // self.k
         for i in range(0, self.k * step, step):
@@ -166,6 +212,7 @@ class CV:
         return train_keys, test_keys
 
     def get_unique_sentences(self) -> list[str]:
+        """Return the sentence ids (``<pmid>_<sentence>``) of the records, in order."""
         sentences = []
         for k in self.keys:
             if "_".join(k.split("_")[:2]) not in sentences:
@@ -173,6 +220,10 @@ class CV:
         return sentences
 
     def get_cv_splits_sentence_wise(self, fold: int) -> tuple[list[str], list[str]]:
+        """Return the training and test keys of ``fold``, keeping sentences whole.
+
+        All the records of a sentence are in the same fold.
+        """
         sentences = self.get_unique_sentences()
         splits = []
         step = len(sentences) // self.k
@@ -200,6 +251,13 @@ class CV:
 
 
 class SaveResults:
+    """A results file, recreated with ``header`` as its first line.
+
+    Args:
+        filename: The path of the file.
+        header: An optional first line.
+    """
+
     def __init__(self, filename: str, header: str | None = None) -> None:
         self.filename = filename
         if os.path.exists(filename):
@@ -210,11 +268,13 @@ class SaveResults:
                 print(header, file=out)
 
     def save(self, info: str) -> None:
+        """Append a line to the file."""
         with open(self.filename, "a") as out:
             print(info, file=out)
 
 
 def set_seed(seed: int) -> None:
+    """Seed the Python, NumPy and PyTorch random number generators."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)

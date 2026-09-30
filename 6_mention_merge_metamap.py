@@ -1,3 +1,10 @@
+"""MetaMap pipeline, step 6: clean up and merge the concepts extracted in step 5.
+
+The low-scoring concepts are dropped, the entities are optionally expanded to whole
+words, and adjacent and overlapping entities are merged. The result is saved to
+``<input_path>/<date>/metamap/merged_entities/<disease>.json``.
+"""
+
 import argparse
 
 import pandas as pd

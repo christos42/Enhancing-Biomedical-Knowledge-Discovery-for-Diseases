@@ -1,3 +1,10 @@
+"""Streamlit app to annotate the relation between entity pairs.
+
+Run it with ``streamlit run annotation_app_s.py -- --bucket_id <n> --trial_id <n>
+--disease_name <name> --annotator <name>``. The annotations, and the entities and
+sentences marked for removal, are saved after every interaction.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -87,6 +94,11 @@ if "sentences_to_be_removed" not in state:
 
 
 def annotation_accumulation(flag: str, label: str) -> None:
+    """Record the relation or the useful text of the current pair.
+
+    ``flag`` "1" records the relation and "2" the useful text; once both are recorded,
+    the app moves on to the next pair.
+    """
     if flag == "1":
         state.annotations[state.current_sentence_id]["relation"] = label
     elif flag == "2":
@@ -109,6 +121,7 @@ def annotation_accumulation(flag: str, label: str) -> None:
 
 
 def remove_entity(entity_index: str) -> None:
+    """Mark an entity of the current sentence for removal, skipping its pairs."""
     sentence_id = "_".join(state.current_sentence_id.split("_")[:2])
     if sentence_id not in state.entities_to_be_removed.keys():
         state.entities_to_be_removed[sentence_id] = [entity_index]
@@ -139,6 +152,7 @@ def remove_entity(entity_index: str) -> None:
 
 
 def remove_sentence(sentence_id_r: str) -> None:
+    """Mark a sentence for removal and skip all its pairs."""
     state.sentences_to_be_removed.append(sentence_id_r)
     pairs_to_remove = []
     for id_ in state.sentence_ids:

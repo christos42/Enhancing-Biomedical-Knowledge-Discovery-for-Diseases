@@ -1,3 +1,9 @@
+"""Prepare the sentences of a bucket for the annotation app.
+
+For every pair of entities of each sentence, the sentence is written in Streamlit
+markdown with the first entity in red and the second in blue (green where they overlap).
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -12,6 +18,7 @@ from utils import read_json, save_json
 
 
 def get_chunk(pos: str) -> list[int]:
+    """Return the character indices covered by a MetaMap position."""
     start = int(pos.split("/")[0]) - 1
     stop = start + int(pos.split("/")[1])
     return np.arange(start, stop).tolist()
@@ -20,6 +27,19 @@ def get_chunk(pos: str) -> list[int]:
 def process_sampled_sentences(
     sampled_ids: list[str], data_entities: dict[str, Any], abstracts: dict[str, Any]
 ) -> dict[str, Any]:
+    """Return the markdown of every entity pair of the sampled sentences.
+
+    The pairs of entities with the same preferred name are skipped.
+
+    Args:
+        sampled_ids: The sentence ids of the bucket.
+        data_entities: Sentence id -> position -> MetaMap entity.
+        abstracts: PMID -> abstract (step 3).
+
+    Returns:
+        ``<sentence id>_pair_<i>_<j>`` -> the sentence markdown, and the types, names,
+        indices and colored names of the two entities.
+    """
     markdown_sentences = {}
     for id_ in sampled_ids:
         k1 = id_.split("_")[0]

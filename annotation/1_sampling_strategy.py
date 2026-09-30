@@ -1,3 +1,11 @@
+"""Sample the sentences to annotate, using the MetaMap co-occurrence graph.
+
+Strategy 1 builds buckets of 50 sentences: half sampled with probabilities proportional
+to the total frequency of their concept pairs, half inversely proportional. Strategy 2
+aims to cover as many concept pairs as possible. The buckets are saved to
+``strategy_<id>/<disease>/bucket_<n>.json``.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -14,11 +22,13 @@ from utils import read_json, save_json
 
 # function that creates random sample
 def random_sampling(ids: list[str], n: int) -> np.ndarray:
+    """Sample ``n`` distinct ids uniformly at random."""
     random_sample = np.random.choice(ids, replace=False, size=n)
     return random_sample
 
 
 def weighted_random_sampling(ids: list[str], prob: list[float], n: int) -> list[str]:
+    """Sample ``n`` distinct ids with the probabilities ``prob``."""
     random_sample = rng.choice(ids, replace=False, size=n, p=prob, shuffle=False)
     return list(random_sample)
 

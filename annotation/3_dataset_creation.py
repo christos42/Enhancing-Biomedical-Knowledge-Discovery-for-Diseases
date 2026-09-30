@@ -1,3 +1,5 @@
+"""Turn the annotations of an annotator into dataset records."""
+
 from __future__ import annotations
 
 import argparse
@@ -14,6 +16,15 @@ def create_dataset(
     data_entities: dict[str, Any],
     abstracts: dict[str, Any],
 ) -> dict[str, Any]:
+    """Return a dataset record for every fully annotated entity pair.
+
+    The pair still being annotated when the file was saved (without a relation or useful
+    text) is skipped.
+
+    Returns:
+        ``<sentence id>_rec_<n>`` -> the sentence, the two entities, the relation and
+        the useful text.
+    """
     dataset = {}
     count_rec_per_sent: dict[str, int] = {}
     for k1 in annotations:

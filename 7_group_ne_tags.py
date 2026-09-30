@@ -1,3 +1,5 @@
+"""SciSpacy pipeline, step 7: merge the entities that several NER models found."""
+
 import argparse
 
 from utils.ner_utils import merge_same_entities_scispacy

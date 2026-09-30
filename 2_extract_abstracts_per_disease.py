@@ -1,3 +1,10 @@
+"""Step 2: download the title, date and abstract of every PMID found in step 1.
+
+The progress is saved for each disease, so a run interrupted by PubMed errors (or
+Ctrl-C) resumes where it stopped: run it again until it reports that all the abstracts
+were extracted.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -14,6 +21,14 @@ from utils.utils import (
 
 
 def get_unique_abstracts(all_abstracts: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Merge the abstracts that PubMedDivide collected per date window.
+
+    Args:
+        all_abstracts: The date window -> PMID -> abstract.
+
+    Returns:
+        PMID -> abstract, keeping the first occurrence of each PMID.
+    """
     # Applicable if PubMedDivide class is used for abstract extraction.
     unique_abstracts: dict[str, Any] = {}
     for date in all_abstracts.keys():

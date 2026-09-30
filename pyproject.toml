@@ -16,10 +16,16 @@ select = [
     "N",       # naming (PEP 8)
     "UP",      # modern syntax for the target Python version
     "ANN",     # type annotations (PEP 484)
+    "D",       # docstrings (PEP 257)
 ]
 ignore = [
     "ANN401",  # the JSON data structures are dynamic, so typing.Any is intended
+    "D105",    # magic methods (__len__, __getitem__) are described by their class
+    "D107",    # constructor arguments are documented in the class docstring
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 # Type check each part on its own, since the experiments reuse module names (main.py, ...):
 #   mypy --explicit-package-bases [0-9]*.py utils

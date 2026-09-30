@@ -1,3 +1,5 @@
+"""The LaMReDA and LaMReDM relation detection models."""
+
 from __future__ import annotations
 
 import argparse
@@ -15,6 +17,16 @@ from utils.training_utils import (
 
 
 class LaMReDA(torch.nn.Module):
+    """Relation detection with additive aggregation of the representations.
+
+    The representations chosen by ``args.aggregation`` are projected, summed and
+    classified.
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -63,6 +75,13 @@ class LaMReDA(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> torch.Tensor:
+        """Return the relation logits of a batch.
+
+        Args:
+            x: The words of each sentence, with the entity markers.
+            entities_range: For each sentence, the sub-word positions of the [ent] and
+                [/ent] markers of its two entities.
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",
@@ -278,6 +297,16 @@ class LaMReDA(torch.nn.Module):
 
 
 class LaMReDM(torch.nn.Module):
+    """Relation detection with multiplicative aggregation of the representations.
+
+    The entity representations chosen by ``args.aggregation`` are projected and
+    multiplied element-wise, then classified.
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -326,6 +355,13 @@ class LaMReDM(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> torch.Tensor:
+        """Return the relation logits of a batch.
+
+        Args:
+            x: The words of each sentence, with the entity markers.
+            entities_range: For each sentence, the sub-word positions of the [ent] and
+                [/ent] markers of its two entities.
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",

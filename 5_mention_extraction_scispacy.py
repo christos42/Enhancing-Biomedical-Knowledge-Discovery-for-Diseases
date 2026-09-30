@@ -1,3 +1,10 @@
+"""SciSpacy pipeline, step 5: extract the entities and link them to a knowledge base.
+
+The four SciSpacy NER models (CRAFT, BC5CDR, JNLPBA and BioNLP13CG) are run on every
+sentence, and the entities are linked with the linker chosen by ``--linker``. Run it
+once per linker.
+"""
+
 import argparse
 
 from utils.mentions_extractor import MentionsExtractorSciSpacy

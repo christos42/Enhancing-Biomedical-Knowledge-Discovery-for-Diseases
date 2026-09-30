@@ -1,3 +1,5 @@
+"""SciSpacy pipeline, step 6: combine the outputs of the nine linkers of step 5."""
+
 import argparse
 
 from utils.ner_utils import merge_linkers_scispacy

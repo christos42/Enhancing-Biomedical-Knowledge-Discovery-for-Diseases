@@ -1,4 +1,8 @@
-"""
+"""MetaMap pipeline, step 5: extract the UMLS concepts of every sentence.
+
+Run it from the MetaMap Lite installation folder. The concepts of each sentence are
+saved to ``<output_path>/<date>/metamap/<disease>/<sentence id>.csv``.
+
 This software, “MetaMapLite” was developed and funded by the National Library of
 Medicine, part of the National Institutes of Health, and agency of the United States
 Department of Health and Human Services, which is making the software available to the
@@ -23,17 +27,28 @@ from pymetamap import MetaMapLite
 
 
 def save_json(file: Any, name: str, output_path: str = "") -> None:
+    """Write ``file`` as JSON to ``output_path + name``.
+
+    A copy of utils.utils.save_json, since this script runs from the MetaMap Lite
+    folder.
+    """
     with open(output_path + name, "w") as outfile:
         json.dump(file, outfile)
 
 
 def read_json(f_path: str) -> Any:
+    """Load and return the JSON content of ``f_path``.
+
+    A copy of utils.utils.read_json, since this script runs from the MetaMap Lite
+    folder.
+    """
     f = open(f_path)
     data = json.load(f)
     return data
 
 
 def find_json_files(path: str) -> list[str]:
+    """Return the paths of all the ``.json`` files under ``path`` (recursively)."""
     f_path = []
     for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
@@ -44,12 +59,14 @@ def find_json_files(path: str) -> list[str]:
 
 
 def create_new_folder(path: str) -> None:
+    """Create ``path``, with its parents, if it does not exist."""
     exists = os.path.exists(path)
     if not exists:
         os.makedirs(path)
 
 
 def get_keys_from_mm(concept: Any, klist: list[str]) -> tuple[Any, ...]:
+    """Return the values of the fields ``klist`` of a MetaMap Lite concept."""
     conc_dict = concept._asdict()
     conc_list = [conc_dict.get(kk) for kk in klist]
     return tuple(conc_list)

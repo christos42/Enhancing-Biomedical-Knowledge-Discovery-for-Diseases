@@ -1,3 +1,9 @@
+"""SciSpacy pipeline, step 8: keep the linked concepts that fit each entity's type.
+
+For each (grouped) type of an entity, the concepts of the first knowledge base of the
+type's priority list that linked the entity are kept.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -63,6 +69,17 @@ LINKER_PRIORITY = {
 
 
 def sampling_linking_codes_strategy(data_merged: dict[str, Any]) -> dict[str, Any]:
+    """Add the sampled linked concepts of every entity to the data.
+
+    The sentences' dicts are updated in place.
+
+    Args:
+        data_merged: PMID -> sentence id -> the entities and their linked concepts per
+            knowledge base (step 7).
+
+    Returns:
+        The data, with a ``sampled_linked_entities`` list for each sentence.
+    """
     data_merged_upd = data_merged.copy()
     for k1 in data_merged_upd:
         for k2 in data_merged_upd[k1]:

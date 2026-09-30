@@ -1,3 +1,5 @@
+"""Datasets and data loaders of the embedding learning experiments."""
+
 from __future__ import annotations
 
 import argparse
@@ -15,12 +17,15 @@ from utils.utils import read_json
 
 
 class Collater:
+    """Collate a batch into lists of words, entity ranges, targets and labels."""
+
     def __init__(self) -> None:
         pass
 
     def __call__(
         self, data: list[tuple[list[str], list[list[int]], int, int]]
     ) -> list[list[Any]]:
+        """Return the words, entity ranges, targets and labels of a batch as lists."""
         words = [item[0] for item in data]
         entities_ranges = [item[1] for item in data]
         targets = [item[2] for item in data]
@@ -30,6 +35,14 @@ class Collater:
 
 
 class DataProcess(Dataset):
+    """Entity pairs with cosine targets (1 if related, else -1) and binary labels.
+
+    Args:
+        data: The (tokens with entity markers, entity ranges, relation) examples.
+        embed_mode: The backbone (a key of utils.training_utils.BACKBONES), whose
+            tokenizer maps the words to sub-words.
+    """
+
     def __init__(
         self, data: list[tuple[list[str], list[list[int]], str]], embed_mode: str
     ) -> None:
@@ -73,6 +86,10 @@ class DataProcess(Dataset):
         return (words, new_entities_range, target, relation)
 
     def map_origin_word_to_bert(self, words: list[str]) -> dict[int, list[int]]:
+        """Return the first and last sub-word index of each word.
+
+        The indices exclude the special tokens that the tokenizer adds.
+        """
         bep_dict = {}
         current_idx = 0
         for word_idx, word in enumerate(words):
@@ -85,6 +102,11 @@ class DataProcess(Dataset):
     def ner_label_transform(
         self, entities_range: list[list[int]], word_to_bert: dict[int, list[int]]
     ) -> list[list[int]]:
+        """Map word-level entity ranges to positions in the model input.
+
+        The ranges point at the ``[ent]`` and ``[/ent]`` markers, which are single
+        sub-words; 1 is added for the leading special token.
+        """
         new_entities_range = []
         for r in entities_range:
             # +1 for [CLS]
@@ -98,6 +120,7 @@ class DataProcess(Dataset):
 def data_preprocess(
     keys: Iterable[str], data: dict[str, Any]
 ) -> list[tuple[list[str], list[list[int]], str]]:
+    """Return the (tokens with markers, entity ranges, relation) of the records."""
     processed = []
     for k in keys:
         dic = data[k]
@@ -110,6 +133,10 @@ def data_preprocess(
 
 
 def dataloader(args: argparse.Namespace) -> tuple[DataLoader, DataLoader, DataLoader]:
+    """Build the training, test and development data loaders.
+
+    The splits come from cross-disease training, cross-validation or the original split.
+    """
     if args.do_cross_disease_training:
         data = read_json(args.dataset_path)
         # Create the fold of keys for training and test (5-fold CV is applied)

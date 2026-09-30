@@ -1,3 +1,9 @@
+"""Step 3: split each abstract into sentences and give each sentence an id.
+
+Adds ``abstract_tokenized`` (the sentences) and ``sentence_ids`` (``<pmid>_<n>``, from
+1) to every abstract.
+"""
+
 import argparse
 
 from nltk.tokenize import sent_tokenize

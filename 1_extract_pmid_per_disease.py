@@ -1,3 +1,9 @@
+"""Step 1: search PubMed for a disease and save the PMIDs of the matching articles.
+
+The PMIDs are saved to ``<output_path>/<today's date>/<query>.json``. Queries with more
+than 9,999 results are searched one monthly date window at a time.
+"""
+
 import argparse
 from datetime import date
 

@@ -1,3 +1,8 @@
+"""The LaMEL embedding learning models.
+
+A relation is predicted from the cosine similarity of the two entity embeddings.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -11,6 +16,13 @@ from utils.training_utils import inter_representation, load_backbone_with_marker
 
 
 class LaMEL(torch.nn.Module):
+    """Entity embeddings whose cosine similarity is high for related entity pairs.
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -32,6 +44,17 @@ class LaMEL(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return the embeddings of the two entities of each example.
+
+        Args:
+            x: The words of each sentence, with the entity markers.
+            entities_range: For each sentence, the sub-word positions of the [ent] and
+                [/ent] markers of its two entities.
+
+        Returns:
+            The embeddings of the first entities and of the second entities (batch x
+            size).
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",
@@ -127,6 +150,16 @@ class LaMEL(torch.nn.Module):
 
 
 class LaMELInter(torch.nn.Module):
+    """Like LaMEL, also using the tokens between the two entities.
+
+    Each entity embedding is multiplied element-wise by a projection of the mean
+    representation of the tokens between the entities.
+
+    Args:
+        args: The experiment arguments.
+        device: The device of the model inputs.
+    """
+
     def __init__(self, args: argparse.Namespace, device: torch.device | str) -> None:
         super().__init__()
 
@@ -147,6 +180,17 @@ class LaMELInter(torch.nn.Module):
     def forward(
         self, x: list[list[str]], entities_range: list[list[list[int]]]
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return the embeddings of the two entities of each example.
+
+        Args:
+            x: The words of each sentence, with the entity markers.
+            entities_range: For each sentence, the sub-word positions of the [ent] and
+                [/ent] markers of its two entities.
+
+        Returns:
+            The embeddings of the first entities and of the second entities (batch x
+            size).
+        """
         inputs = self.tokenizer(
             x,
             return_tensors="pt",

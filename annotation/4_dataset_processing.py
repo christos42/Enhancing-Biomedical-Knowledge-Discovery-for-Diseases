@@ -1,3 +1,11 @@
+"""Tokenize the dataset sentences and add the entity markers.
+
+Merges an annotator's dataset files into ``dataset_total.json`` and
+``essential_dataset_total.json``, which has the tokens, the tokens with the ``[ent]``
+and ``[/ent]`` markers, the entity token ranges without and with the markers, the entity
+types and the relation.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -19,6 +27,12 @@ tokenizer = nlp.tokenizer
 
 
 def tokenize_and_extract_spans(sentence: str) -> tuple[list[str], list[list[int]]]:
+    """Tokenize a sentence and return the characters of each token.
+
+    Returns:
+        The tokens, and for each token the character indices from its start to one past
+        its end.
+    """
     # tokens = word_tokenize(sentence)
     tokens_obj = tokenizer(sentence)
     tokens = []
@@ -44,18 +58,25 @@ def tokenize_and_extract_spans(sentence: str) -> tuple[list[str], list[list[int]
 
 
 def get_chunk(pos: str) -> tuple[int, int]:
+    """Return the ``[start, end)`` character range of a MetaMap position."""
     start = int(pos.split("/")[0]) - 1
     stop = start + int(pos.split("/")[1])
     return start, stop
 
 
 def get_range(pos: str) -> list[int]:
+    """Return the character indices of a MetaMap position and the one after its end."""
     start = int(pos.split("/")[0]) - 1
     stop = start + int(pos.split("/")[1])
     return list(np.arange(start, stop + 1))
 
 
 def find_start_end_token(position: str, spans: list[list[int]]) -> list[int]:
+    """Return the indices of the first and last tokens of an entity.
+
+    Tokens that start or end exactly at the entity's boundaries are preferred;
+    otherwise, the tokens containing the boundaries are used.
+    """
     start, end = get_chunk(position)
     flag_start, flag_end = 0, 0
     for i, s in enumerate(spans):
@@ -81,6 +102,7 @@ def find_start_end_token(position: str, spans: list[list[int]]) -> list[int]:
 
 
 def add_special_tokens_1(tokens: list[str], ranges: list[list[int]]) -> list[str]:
+    """Insert ``[ent]`` before and ``[/ent]`` after each of the two entities."""
     tokens_updated = []
     ent_1_start, ent_1_end = ranges[0][0], ranges[0][1]
     ent_2_start, ent_2_end = ranges[1][0], ranges[1][1]
@@ -109,6 +131,7 @@ def add_special_tokens_1(tokens: list[str], ranges: list[list[int]]) -> list[str
 
 
 def add_special_tokens_2(tokens: list[str], ranges: list[list[int]]) -> list[str]:
+    """Insert ``[ent1]``/``[/ent1]`` and ``[ent2]``/``[/ent2]`` around the entities."""
     tokens_updated = []
     ent_1_start, ent_1_end = ranges[0][0], ranges[0][1]
     ent_2_start, ent_2_end = ranges[1][0], ranges[1][1]
@@ -137,6 +160,10 @@ def add_special_tokens_2(tokens: list[str], ranges: list[list[int]]) -> list[str
 
 
 def update_the_ranges(ranges: list[list[int]]) -> list[list[int]]:
+    """Shift the entity token ranges to account for the inserted markers.
+
+    The returned ranges include the markers.
+    """
     ent_1_start, ent_1_end = ranges[0][0], ranges[0][1]
     ent_2_start, ent_2_end = ranges[1][0], ranges[1][1]
     if ent_1_start < ent_2_start:
