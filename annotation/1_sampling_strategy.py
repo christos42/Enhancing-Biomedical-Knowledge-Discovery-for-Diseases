@@ -17,7 +17,7 @@ def random_sampling(ids, n):
 
 def weighted_random_sampling(ids, prob, n):
     random_sample = rng.choice(ids, replace=False, size=n, p=prob, shuffle=False)
-    return list((random_sample))
+    return list(random_sample)
 
 
 if __name__ == "__main__":
@@ -58,7 +58,8 @@ if __name__ == "__main__":
         type=int,
         default=10,
         required=False,
-        help="the number of concept pairs to be sampled per bucket (sampling strategy: 2)",
+        help="the number of concept pairs to be sampled per bucket "
+        "(sampling strategy: 2)",
     )
 
     args = parser.parse_args()
@@ -138,7 +139,7 @@ if __name__ == "__main__":
         probabilities.append(float(f / total_freq_sum))
         counter += 1
         if counter % 50000 == 0:
-            print("{} probabilities counted.".format(counter))
+            print(f"{counter} probabilities counted.")
             save_json(probabilities, "probabilities.json")
     print("Create probabilities based on frequencies: DONE")
     # save_json(probabilities, 'probabilities.json')
@@ -151,7 +152,7 @@ if __name__ == "__main__":
         inversed_probabilities.append(float(f / inversed_total_freq_sum))
         counter += 1
         if counter % 50000 == 0:
-            print("{} inversed probabilities counted.".format(counter))
+            print(f"{counter} inversed probabilities counted.")
             save_json(inversed_probabilities, "inversed_probabilities.json")
     print("Create inversed probabilities based on frequencies: DONE")
     # save_json(inversed_probabilities, 'inversed_probabilities.json')

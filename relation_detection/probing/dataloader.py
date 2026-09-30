@@ -10,7 +10,7 @@ from utils.training_utils import CV, PROBING_BACKBONES
 from utils.utils import read_json
 
 
-class collater_1:
+class Collater:
     def __init__(self):
         pass
 
@@ -132,7 +132,7 @@ def dataloader(args):
     test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
     dev_dataset = DataProcess(dev_data, args.embed_mode, args.exp_setting)
 
-    collate_fn = collater_1()
+    collate_fn = Collater()
 
     train_batch = DataLoader(
         dataset=train_dataset,

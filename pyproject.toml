@@ -10,5 +10,9 @@ extend-exclude = ["UMLS_update_SciSpacy"]
 
 [tool.ruff.lint]
 select = [
-    "I",  # import order (PEP 8)
+    "E", "W",  # pycodestyle (PEP 8)
+    "F",       # pyflakes
+    "I",       # import order (PEP 8)
+    "N",       # naming (PEP 8)
+    "UP",      # modern syntax for the target Python version
 ]

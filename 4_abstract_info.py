@@ -1,7 +1,7 @@
 import argparse
 
 from utils.pubmed import Abstract
-from utils.utils import create_new_folder, find_json_files, read_json, save_json
+from utils.utils import create_new_folder, find_json_files, read_json
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

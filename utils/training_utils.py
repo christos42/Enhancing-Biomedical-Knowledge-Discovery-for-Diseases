@@ -28,7 +28,7 @@ PROBING_BACKBONES = {
 
 
 def load_tokenizer_with_markers(embed_mode):
-    """The backbone's tokenizer, with the entity markers [ent] and [/ent] added to the vocabulary."""
+    """The backbone's tokenizer, with the markers [ent] and [/ent] in its vocabulary."""
     tokenizer = AutoTokenizer.from_pretrained(BACKBONES[embed_mode][0])
     tokenizer.add_tokens(["[ent]"])
     tokenizer.add_tokens(["[/ent]"])
@@ -38,7 +38,8 @@ def load_tokenizer_with_markers(embed_mode):
 def load_backbone_with_markers(embed_mode):
     """The backbone's tokenizer and language model, and its hidden size.
 
-    The embeddings of the added [ent] and [/ent] tokens are initialized randomly (using a fixed seed)."""
+    The embeddings of the added [ent] and [/ent] tokens are initialized randomly (using
+    a fixed seed)."""
     checkpoint, hidden_size = BACKBONES[embed_mode]
     tokenizer = load_tokenizer_with_markers(embed_mode)
     model = AutoModel.from_pretrained(checkpoint)
@@ -56,7 +57,8 @@ def load_backbone_with_markers(embed_mode):
         torch.empty(hidden_size).uniform_(-1e-4, 1e-4, generator=generator), 0
     )
     new_weights = torch.cat((weights, w1, w2), 0)
-    # Also place them at the ids the tokenizer assigned, which precede the appended rows when its vocabulary is smaller than the matrix
+    # Also place them at the ids the tokenizer assigned, which precede the appended rows
+    # when its vocabulary is smaller than the matrix
     new_weights[tokenizer.convert_tokens_to_ids(["[ent]", "[/ent]"])] = torch.cat(
         (w1, w2), 0
     )
@@ -71,7 +73,8 @@ def load_backbone_with_markers(embed_mode):
 
 
 def load_frozen_backbone(embed_mode):
-    """A probing backbone's tokenizer and language model, with all its layers frozen, and its hidden size."""
+    """A probing backbone's tokenizer, its language model (all layers frozen) and its
+    hidden size."""
     checkpoint, hidden_size = PROBING_BACKBONES[embed_mode]
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     model = AutoModel.from_pretrained(checkpoint)
@@ -85,7 +88,8 @@ def load_frozen_backbone(embed_mode):
 def inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2):
     """Mean representation of the tokens between the two entities.
 
-    When nothing is between them (adjacent or overlapping entities), the mean of their start tokens is used."""
+    When nothing is between them (adjacent or overlapping entities), the mean of their
+    start tokens is used."""
     if end_ent_1 + 1 == start_ent_2:
         return torch.mean(torch.stack([r1[start_ent_1], r1[start_ent_2]]), 0)
     elif end_ent_2 + 1 == start_ent_1:
@@ -100,13 +104,15 @@ def inter_representation(r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2):
 def atlop_context_vector(attentions, r1, head_span, tail_span):
     """ATLOP-style context vector of an entity pair.
 
-    attentions: one example's attention scores of a layer (heads x tokens x tokens); r1: its token representations;
-    head_span, tail_span: inclusive (start, end) token positions whose attention rows represent each entity."""
+    attentions: one example's attention scores of a layer (heads x tokens x tokens);
+    r1: its token representations; head_span, tail_span: inclusive (start, end) token
+    positions whose attention rows represent each entity."""
     # extract attentions of the two entities and sequence
     head_attentions = torch.mean(attentions[:, head_span[0] : head_span[1] + 1, :], 1)
     tail_attentions = torch.mean(attentions[:, tail_span[0] : tail_span[1] + 1, :], 1)
 
-    # hadamard product of the head_attentions and tail_attentions, then average over heads
+    # hadamard product of the head_attentions and tail_attentions, then average over
+    # heads
     head_tail_attentions = (head_attentions * tail_attentions).mean(dim=0)
 
     # normalize in order to have a distribution over sequence
@@ -175,7 +181,7 @@ class CV:
         return train_keys, test_keys
 
 
-class save_results(object):
+class SaveResults:
     def __init__(self, filename, header=None):
         self.filename = filename
         if os.path.exists(filename):

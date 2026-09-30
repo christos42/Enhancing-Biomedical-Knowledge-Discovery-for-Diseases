@@ -32,7 +32,7 @@ if __name__ == "__main__":
     create_new_folder(args.output_path + current_date)
 
     p = PubMed(args.query.split(","))
-    print("Query: {}".format(args.query))
+    print(f"Query: {args.query}")
     count = p.total_number_of_docs()
     file_name = "_".join(args.query.split(",")) + ".json"
     file_name = file_name.replace(" ", "")
@@ -44,5 +44,5 @@ if __name__ == "__main__":
     else:
         ids, _ = p.retrieve_all_ids()
         save_json(ids, file_name, args.output_path + current_date + "/")
-        print("Number of PMIDs: {}".format(len(ids)))
+        print(f"Number of PMIDs: {len(ids)}")
     print("#############################")

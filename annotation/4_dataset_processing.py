@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 # from nltk.tokenize import word_tokenize
-import scispacy
+import scispacy  # noqa: F401 (registers SciSpacy's spaCy components)
 import spacy
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "utils"))

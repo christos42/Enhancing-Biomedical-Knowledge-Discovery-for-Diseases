@@ -1,5 +1,4 @@
 import argparse
-from datetime import date
 
 from utils.pubmed import PubMed
 from utils.utils import (

@@ -131,7 +131,8 @@ def get_cooccurrence_narrow_dict(data):
 
 
 def get_unique_cuis_metamap(data):
-    unique_cuis = {}  # used as an insertion-ordered set: constant-time membership, unlike a list
+    # Used as an insertion-ordered set: constant-time membership, unlike a list
+    unique_cuis = {}
     for k1 in data:
         for k2 in data[k1].keys():
             ent = data[k1][k2]
@@ -143,7 +144,8 @@ def get_unique_cuis_metamap(data):
 
 
 def get_unique_cuis(data):
-    unique_cuis = {}  # used as an insertion-ordered set: constant-time membership, unlike a list
+    # Used as an insertion-ordered set: constant-time membership, unlike a list
+    unique_cuis = {}
     for k1 in data:
         for k2 in data[k1]:
             for ent in data[k1][k2]["sampled_linked_entities"]:
@@ -154,7 +156,8 @@ def get_unique_cuis(data):
 
 
 def get_unique_cuis_narrow(data):
-    unique_cuis = {}  # used as an insertion-ordered set: constant-time membership, unlike a list
+    # Used as an insertion-ordered set: constant-time membership, unlike a list
+    unique_cuis = {}
     for k1 in data:
         for k2 in data[k1]:
             for ent in data[k1][k2]["sampled_linked_entities"]:

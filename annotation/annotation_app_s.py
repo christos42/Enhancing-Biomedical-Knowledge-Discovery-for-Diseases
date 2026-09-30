@@ -1,6 +1,5 @@
 import argparse
 import os
-import random
 import sys
 from datetime import datetime
 
@@ -28,7 +27,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-# Getting the current date and time (once per session: Streamlit reruns this script on every interaction)
+# Getting the current date and time (once per session: Streamlit reruns this script on
+# every interaction)
 if "ts" not in state:
     dt = datetime.now()
 
@@ -204,9 +204,8 @@ if state.sentence_ids:
     st.write("----------------------------------------------")
 
     st.write(
-        "Define the relation between the colored concepts/entities: {} & {}".format(
-            entity_1_name, entity_2_name
-        )
+        "Define the relation between the colored concepts/entities: "
+        f"{entity_1_name} & {entity_2_name}"
     )
     c1 = st.columns(len(OPTIONS_RELATION))
     for idx, option1 in enumerate(OPTIONS_RELATION):

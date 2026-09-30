@@ -1,6 +1,6 @@
 import argparse
 
-from utils.utils import create_new_folder, find_json_files, read_json, save_json
+from utils.utils import find_json_files, read_json, save_json
 
 # The order in which the knowledge bases are tried for each (grouped) entity type:
 # the concepts of the first knowledge base with at least one linked concept are sampled.

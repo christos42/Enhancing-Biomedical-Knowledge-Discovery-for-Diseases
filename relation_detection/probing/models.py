@@ -9,7 +9,7 @@ from utils.training_utils import atlop_context_vector, load_frozen_backbone
 
 class LMREA(torch.nn.Module):
     def __init__(self, args, device):
-        super(LMREA, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -97,9 +97,9 @@ class LMREA(torch.nn.Module):
         return y
 
 
-class LMREA_proj(torch.nn.Module):
+class LMREAProj(torch.nn.Module):
     def __init__(self, args, device):
-        super(LMREA_proj, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -208,7 +208,7 @@ class LMREA_proj(torch.nn.Module):
 
 class LMREM(torch.nn.Module):
     def __init__(self, args, device):
-        super(LMREM, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -286,9 +286,9 @@ class LMREM(torch.nn.Module):
         return y
 
 
-class LMREM_proj(torch.nn.Module):
+class LMREMProj(torch.nn.Module):
     def __init__(self, args, device):
-        super(LMREM_proj, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -381,9 +381,9 @@ class LMREM_proj(torch.nn.Module):
         return y
 
 
-class LMRE_attention(torch.nn.Module):
+class LMREAttention(torch.nn.Module):
     def __init__(self, args, device):
-        super(LMRE_attention, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -470,7 +470,8 @@ class LMRE_attention(torch.nn.Module):
                 rel_representations.append(attentions_scores)
             elif self.args.aggregation == "head_specific":
                 # extract attentions of a specific head from the model output
-                # x['attentions']: Tuple of torch.FloatTensor (one for each layer) of shape (batch_size, num_heads, sequence_length, sequence_length)
+                # x['attentions']: Tuple of torch.FloatTensor (one for each layer) of
+                # shape (batch_size, num_heads, sequence_length, sequence_length)
                 attentions = []
                 for layer_attentions in x["attentions"]:
                     attentions.append(
@@ -503,7 +504,8 @@ class LMRE_attention(torch.nn.Module):
 
                 rel_representations.append(attentions_scores)
             elif self.args.aggregation == "non_specific":
-                # extract attentions of every layer and attention head from the model output
+                # extract attentions of every layer and attention head from the model
+                # output
                 attentions = []
                 for layer_attentions in x["attentions"]:
                     attentions.append(layer_attentions[i])

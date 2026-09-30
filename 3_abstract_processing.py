@@ -37,7 +37,7 @@ if __name__ == "__main__":
                 data[id_]["sentence_ids"].append(id_ + "_" + str(c + 1))
 
             if counter % 10000 == 0:
-                print("{} abstracts have been processed.".format(counter))
+                print(f"{counter} abstracts have been processed.")
                 print("_")
 
         save_json(data, file_name, args.input_path + args.date + "/")

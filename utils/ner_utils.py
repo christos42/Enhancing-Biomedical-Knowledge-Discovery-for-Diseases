@@ -14,15 +14,15 @@ def find_similarity(nlp, en1, en2):
 
 
 def union_lists(l1, l2):
-    l = []
+    union = []
     for it in l1:
-        if it not in l:
-            l.append(it)
+        if it not in union:
+            union.append(it)
     for it in l2:
-        if it not in l:
-            l.append(it)
+        if it not in union:
+            union.append(it)
 
-    return l
+    return union
 
 
 def union_lists_pairs(l1, l2, l3, l4):

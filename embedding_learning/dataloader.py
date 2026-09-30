@@ -9,7 +9,7 @@ from utils.training_utils import CV, load_tokenizer_with_markers
 from utils.utils import read_json
 
 
-class collater_1:
+class Collater:
     def __init__(self):
         pass
 
@@ -26,7 +26,8 @@ class DataProcess(Dataset):
     def __init__(self, data, embed_mode):
         self.data = data
         self.embed_mode = embed_mode
-        # Same checkpoint as the model, so that the sub-word offsets match its tokenization
+        # Same checkpoint as the model, so that the sub-word offsets match its
+        # tokenization
         self.tokenizer = load_tokenizer_with_markers(embed_mode)
 
         self.mapping_target = {
@@ -149,7 +150,7 @@ def dataloader(args):
     test_dataset = DataProcess(test_data, args.embed_mode)
     dev_dataset = DataProcess(dev_data, args.embed_mode)
 
-    collate_fn = collater_1()
+    collate_fn = Collater()
 
     train_batch = DataLoader(
         dataset=train_dataset,

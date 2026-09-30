@@ -9,7 +9,7 @@ from utils.training_utils import CV, load_tokenizer_with_markers
 from utils.utils import read_json
 
 
-class collater_1:
+class Collater:
     def __init__(self):
         pass
 
@@ -27,7 +27,8 @@ class DataProcess(Dataset):
     ):
         self.data = data
         self.embed_mode = embed_mode
-        # Same checkpoint as the model, so that the sub-word offsets match its tokenization
+        # Same checkpoint as the model, so that the sub-word offsets match its
+        # tokenization
         self.tokenizer = load_tokenizer_with_markers(embed_mode)
 
         if exp_setting == "binary":
@@ -202,7 +203,7 @@ def dataloader(args):
         test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
         dev_dataset = DataProcess(dev_data, args.embed_mode, args.exp_setting)
 
-    collate_fn = collater_1()
+    collate_fn = Collater()
 
     if args.do_end_to_end_training:
         train_batch = DataLoader(

@@ -1,9 +1,7 @@
 import collections
 from datetime import date
 
-import Bio
 import matplotlib.pyplot as plt
-import numpy as np
 from Bio import Entrez
 
 
@@ -62,18 +60,18 @@ class PubMed:
             try:
                 # title_ = doc['MedlineCitation']['Article']['ArticleTitle']
                 title = doc["MedlineCitation"]["Article"]["ArticleTitle"]
-                # if type(title_) == Entrez.Parser.StringElement:
+                # if type(title_) is Entrez.Parser.StringElement:
                 #    pass
                 # title = self.reform_abstract(title_)
             except Exception:
                 title = ""
             try:
                 abstract = doc["MedlineCitation"]["Article"]["Abstract"]["AbstractText"]
-                if type(abstract[0]) == str:
+                if type(abstract[0]) is str:
                     pass
                 else:
                     abstract = self.reform_abstract(abstract)
-                if type(pmid) == list:
+                if type(pmid) is list:
                     abstracts[pmid[0]] = {
                         "date": date,
                         "title": title,
@@ -94,18 +92,18 @@ class PubMed:
             try:
                 # title_ = doc['BookDocument']['ArticleTitle']
                 title = doc["BookDocument"]["ArticleTitle"]
-                # if type(title_) == Entrez.Parser.StringElement:
+                # if type(title_) is Entrez.Parser.StringElement:
                 #    pass
                 # title = self.reform_abstract(title_)
             except Exception:
                 title = ""
             try:
                 abstract = doc["BookDocument"]["Abstract"]["AbstractText"]
-                if type(abstract[0]) == str:
+                if type(abstract[0]) is str:
                     pass
                 else:
                     abstract = self.reform_abstract(abstract)
-                if type(pmid) == list:
+                if type(pmid) is list:
                     abstracts[pmid[0]] = {
                         "date": date,
                         "title": title,
@@ -134,8 +132,8 @@ class PubMed:
             s = self.search(s_d, e_d)
             ids.extend(s["IdList"])
             if print_logging:
-                print("Start date: {}".format(s_d))
-                print("End data: {}".format(e_d))
+                print(f"Start date: {s_d}")
+                print(f"End data: {e_d}")
                 print("{} documents found".format(s["Count"]))
                 print("##########################")
             n_ids_per_search.append(s["Count"])
@@ -170,10 +168,9 @@ class PubMed:
                     abstract = doc["MedlineCitation"]["Article"]["Abstract"][
                         "AbstractText"
                     ]
-                    f = 0
-                    if type(abstract[0]) == Entrez.Parser.StringElement:
+                    if type(abstract[0]) is Entrez.Parser.StringElement:
                         abstract = self.reform_abstract(abstract)
-                    if type(pmid) == list:
+                    if type(pmid) is list:
                         abstracts[pmid[0]] = {
                             "date": date,
                             "title": title,
@@ -197,9 +194,9 @@ class PubMed:
                     title = ""
                 try:
                     abstract = doc["BookDocument"]["Abstract"]["AbstractText"]
-                    if type(abstract[0]) == Entrez.Parser.StringElement:
+                    if type(abstract[0]) is Entrez.Parser.StringElement:
                         abstract = self.reform_abstract(abstract)
-                    if type(pmid) == list:
+                    if type(pmid) is list:
                         abstracts[pmid[0]] = {
                             "date": date,
                             "title": title,
@@ -259,7 +256,7 @@ class PubMed:
             if id_ == "":
                 continue
             try:
-                cast = int(id_)
+                int(id_)  # raises ValueError for non-numeric IDs
                 c_ids.append(id_)
             except Exception:
                 print(id_)
@@ -325,9 +322,9 @@ class PubMedDivide:
                 title = ""
             try:
                 abstract = doc["MedlineCitation"]["Article"]["Abstract"]["AbstractText"]
-                if type(abstract[0]) == Entrez.Parser.StringElement:
+                if type(abstract[0]) is Entrez.Parser.StringElement:
                     abstract = self.reform_abstract(abstract)
-                if type(pmid) == list:
+                if type(pmid) is list:
                     abstracts[pmid[0]] = {
                         "date": date,
                         "title": title,
@@ -351,9 +348,9 @@ class PubMedDivide:
                 title = ""
             try:
                 abstract = doc["BookDocument"]["Abstract"]["AbstractText"]
-                if type(abstract[0]) == Entrez.Parser.StringElement:
+                if type(abstract[0]) is Entrez.Parser.StringElement:
                     abstract = self.reform_abstract(abstract)
-                if type(pmid) == list:
+                if type(pmid) is list:
                     abstracts[pmid[0]] = {
                         "date": date,
                         "title": title,

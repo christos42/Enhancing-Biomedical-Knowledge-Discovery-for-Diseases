@@ -1,10 +1,13 @@
 """
-This software, “MetaMapLite” was developed and funded by the National Library of Medicine, part of the National Institutes of Health,
-and agency of the United States Department of Health and Human Services, which is making the software available to the public for any
-commercial or non-commercial purpose under the following open-source BSD license.
+This software, “MetaMapLite” was developed and funded by the National Library of
+Medicine, part of the National Institutes of Health, and agency of the United States
+Department of Health and Human Services, which is making the software available to the
+public for any commercial or non-commercial purpose under the following open-source BSD
+license.
 
-NOTE: Users of the data distributed with MetaMapLite are responsible for compliance with the UMLS Metathesaurus License Agreement
-which requires you to respect the copyrights of the constituent vocabularies and to file a brief annual report on your use of the UMLS.
+NOTE: Users of the data distributed with MetaMapLite are responsible for compliance with
+the UMLS Metathesaurus License Agreement which requires you to respect the copyrights of
+the constituent vocabularies and to file a brief annual report on your use of the UMLS.
 You also must have activated a UMLS Terminology Services (UTS) account.
 """
 
@@ -38,8 +41,8 @@ def find_json_files(path):
 
 
 def create_new_folder(path):
-    isExist = os.path.exists(path)
-    if not isExist:
+    exists = os.path.exists(path)
+    if not exists:
         os.makedirs(path)
 
 

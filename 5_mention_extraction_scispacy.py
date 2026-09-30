@@ -14,7 +14,8 @@ if __name__ == "__main__":
         default="umls",
         type=str,
         required=False,
-        help="supported linkers: umls, mesh, rxnorm, go, hpo, drugbank, gs, ncbi, snomed",
+        help="supported linkers: umls, mesh, rxnorm, go, hpo, drugbank, gs, ncbi, "
+        "snomed",
     )
     parser.add_argument(
         "--input_path",

@@ -1,6 +1,6 @@
-import scispacy
+import scispacy  # noqa: F401 (registers SciSpacy's spaCy components)
 import spacy
-from scispacy.linking import EntityLinker
+from scispacy.linking import EntityLinker  # noqa: F401 (registers "scispacy_linker")
 
 
 class MentionsExtractorSciSpacy:
@@ -23,7 +23,8 @@ class MentionsExtractorSciSpacy:
         else:
             flag = 1
             print(
-                "Unknown type given. Supported pipelines: craft, bc5cdr, jnlpba, bionlp13cg"
+                "Unknown type given. Supported pipelines: "
+                "craft, bc5cdr, jnlpba, bionlp13cg"
             )
 
         if flag == 0:
@@ -114,7 +115,8 @@ class MentionsExtractorSciSpacy:
 
     def extract_entities_pos_tags(self, data):
         info = {id_: {} for id_ in data}
-        # Stream all sentences through nlp.pipe in batches (same documents as calling self.nlp per sentence)
+        # Stream all sentences through nlp.pipe in batches (same documents as calling
+        # self.nlp per sentence)
         sentences = (
             (s, (id_, i))
             for id_ in data

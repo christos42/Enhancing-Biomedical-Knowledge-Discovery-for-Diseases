@@ -9,11 +9,11 @@ from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss
 from torch.optim import Adam
 from tqdm import tqdm
 
-from dataloader import *
-from models import LMREA, LMREM, LMRE_attention, LMREA_proj, LMREM_proj
+from dataloader import dataloader
+from models import LMREA, LMREM, LMREAProj, LMREAttention, LMREMProj
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
-from utils.training_utils import save_results, set_seed
+from utils.training_utils import SaveResults, set_seed
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -87,12 +87,11 @@ def evaluate(test_batch, loss_fn, args, test_or_dev):
                 zero_division=0.0,
             )
 
-        logger.info("------ {} Results ------".format(test_or_dev))
-        logger.info("loss : {:.4f}".format(test_loss / steps))
+        logger.info(f"------ {test_or_dev} Results ------")
+        logger.info(f"loss : {test_loss / steps:.4f}")
         logger.info(
-            "precision={:.4f}, recall={:.4f}, f1={:.4f}, f_0_5={:.4f}".format(
-                precision, recall, f1, f_0_5
-            )
+            f"precision={precision:.4f}, recall={recall:.4f}, "
+            f"f1={f1:.4f}, f_0_5={f_0_5:.4f}"
         )
 
     return precision, recall, f1, f_0_5, test_loss / steps
@@ -158,7 +157,8 @@ if __name__ == "__main__":
         type=str,
         required=True,
         choices=["binary", "multi_class"],
-        help="the experimental setting for the task (relation detection): binary or multi_class",
+        help="the experimental setting for the task (relation detection): binary or "
+        "multi_class",
     )
 
     parser.add_argument(
@@ -296,9 +296,11 @@ if __name__ == "__main__":
     logger.info(sys.argv)
     logger.info(args)
 
-    saved_file = save_results(
+    saved_file = SaveResults(
         output_dir + "/" + args.output_file + ".txt",
-        header="# epoch \t train_loss \t  dev_loss \t test_loss \t dev_precision \t dev_recall \t dev_f1 \t dev_f_0_5 \t test_precision \t test_recall \t test_f1 \t test_f_0_5",
+        header="# epoch \t train_loss \t  dev_loss \t test_loss \t dev_precision "
+        "\t dev_recall \t dev_f1 \t dev_f_0_5 \t test_precision \t test_recall "
+        "\t test_f1 \t test_f_0_5",
     )
 
     model_file = args.output_file + ".pt"
@@ -310,13 +312,13 @@ if __name__ == "__main__":
         if args.model_id == 1:
             model = LMREA(args, device)
         elif args.model_id == 2:
-            model = LMREA_proj(args, device)
+            model = LMREAProj(args, device)
         elif args.model_id == 3:
             model = LMREM(args, device)
         elif args.model_id == 4:
-            model = LMREM_proj(args, device)
+            model = LMREMProj(args, device)
         elif args.model_id == 5:
-            model = LMRE_attention(args, device)
+            model = LMREAttention(args, device)
 
         model.to(device)
 
@@ -369,13 +371,12 @@ if __name__ == "__main__":
 
                 if steps % args.steps == 0:
                     logger.info(
-                        "Epoch: {}, step: {} / {}, loss = {:.4f}".format(
-                            epoch, steps, len(train_batch), train_loss / steps
-                        )
+                        f"Epoch: {epoch}, step: {steps} / {len(train_batch)}, "
+                        f"loss = {train_loss / steps:.4f}"
                     )
 
             logger.info("------ Training Set Results ------")
-            logger.info("loss : {:.4f}".format(train_loss / steps))
+            logger.info(f"loss : {train_loss / steps:.4f}")
 
             if args.do_eval:
                 model.eval()
@@ -399,24 +400,14 @@ if __name__ == "__main__":
                     logger.info("Best result on dev saved!!!")
 
                 saved_file.save(
-                    "{} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}".format(
-                        epoch,
-                        train_loss / steps,
-                        dev_loss,
-                        test_loss,
-                        dev_precision,
-                        dev_recall,
-                        dev_f1,
-                        dev_f_0_5,
-                        test_precision,
-                        test_recall,
-                        test_f1,
-                        test_f_0_5,
-                    )
+                    f"{epoch} \t {train_loss / steps:.4f} \t {dev_loss:.4f} \t "
+                    f"{test_loss:.4f} \t {dev_precision:.4f} \t {dev_recall:.4f} \t "
+                    f"{dev_f1:.4f} \t {dev_f_0_5:.4f} \t {test_precision:.4f} \t "
+                    f"{test_recall:.4f} \t {test_f1:.4f} \t {test_f_0_5:.4f}"
                 )
 
         saved_file.save(
-            "best test results: precision: {:.4f} \t recall: {:.4f} \t f1: {:.4f}  \t f_0_5: {:.4f}".format(
-                test_precision_best, test_recall_best, test_f1_best, test_f_0_5_best
-            )
+            f"best test results: precision: {test_precision_best:.4f} \t "
+            f"recall: {test_recall_best:.4f} \t f1: {test_f1_best:.4f}  \t "
+            f"f_0_5: {test_f_0_5_best:.4f}"
         )

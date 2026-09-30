@@ -9,7 +9,7 @@ from utils.training_utils import inter_representation, load_backbone_with_marker
 
 class LaMEL(torch.nn.Module):
     def __init__(self, args, device):
-        super(LaMEL, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -43,9 +43,11 @@ class LaMEL(torch.nn.Module):
             start_ent_2 = entities_range[i][1][0]
             end_ent_2 = entities_range[i][1][1]
             if self.args.aggregation == "ent_context_ent_context":
-                # ent_rep_1 = torch.unsqueeze(torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
+                # ent_rep_1 = torch.unsqueeze(
+                #     torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
                 ent_rep_1 = torch.mean(r1[start_ent_1 + 1 : end_ent_1], 0)
-                # ent_rep_2 = torch.unsqueeze(torch.mean(r1[start_ent_2 + 1:end_ent_2], 0), 0)
+                # ent_rep_2 = torch.unsqueeze(
+                #     torch.mean(r1[start_ent_2 + 1:end_ent_2], 0), 0)
                 ent_rep_2 = torch.mean(r1[start_ent_2 + 1 : end_ent_2], 0)
 
                 if self.args.do_train:
@@ -119,9 +121,9 @@ class LaMEL(torch.nn.Module):
         return ent_1_representations_tensor, ent_2_representations_tensor
 
 
-class LaMEL_inter(torch.nn.Module):
+class LaMELInter(torch.nn.Module):
     def __init__(self, args, device):
-        super(LaMEL_inter, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -157,9 +159,11 @@ class LaMEL_inter(torch.nn.Module):
                 r1, start_ent_1, end_ent_1, start_ent_2, end_ent_2
             )
             if self.args.aggregation == "ent_context_ent_context":
-                # ent_rep_1 = torch.unsqueeze(torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
+                # ent_rep_1 = torch.unsqueeze(
+                #     torch.mean(r1[start_ent_1 + 1:end_ent_1], 0), 0)
                 ent_rep_1 = torch.mean(r1[start_ent_1 + 1 : end_ent_1], 0)
-                # ent_rep_2 = torch.unsqueeze(torch.mean(r1[start_ent_2 + 1:end_ent_2], 0), 0)
+                # ent_rep_2 = torch.unsqueeze(
+                #     torch.mean(r1[start_ent_2 + 1:end_ent_2], 0), 0)
                 ent_rep_2 = torch.mean(r1[start_ent_2 + 1 : end_ent_2], 0)
 
                 if self.args.do_train:

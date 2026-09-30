@@ -33,7 +33,7 @@ Install them with ```pip install -r requirements.txt```.
    - do_cross_disease_training (store_value): boolean value to define if cross-disease mode is applied.
    - model_id (int): the model id for the model selection, precisely:
      - 1: for the LaMEL model (E<sub>A</sub>, E<sub>B</sub>, E<sub>C</sub>, E<sub>D</sub>)
-     - 2: for the LaMEL_inter model (E<sub>E</sub>, E<sub>F</sub>, E<sub>G</sub>, E<sub>H</sub>)
+     - 2: for the LaMELInter model (E<sub>E</sub>, E<sub>F</sub>, E<sub>G</sub>, E<sub>H</sub>)
    - epoch (int): the number of training epochs
    - batch_size (int): the batch size for the training session
    - eval_batch_size (int): the batch size for the evaluation session

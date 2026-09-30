@@ -25,8 +25,6 @@ def process_sampled_sentences(sampled_ids, data_entities, abstracts):
 
         for i, ent1 in enumerate(entities):
             for j, ent2 in enumerate(entities[i + 1 :]):
-                cui1 = data_entities[id_][ent1]["cui"]
-                cui2 = data_entities[id_][ent2]["cui"]
                 name1 = data_entities[id_][ent1]["preferred_name"]
                 name2 = data_entities[id_][ent2]["preferred_name"]
                 if name1 == name2:
@@ -57,7 +55,8 @@ def process_sampled_sentences(sampled_ids, data_entities, abstracts):
                                     colored_entity_1 += char
                                 else:
                                     color_flag_1 = 1
-                                    # sentence_string_to_present += ':red[' + char + ']'
+                                    # sentence_string_to_present += (
+                                    #     ':red[' + char + ']')
                                     # colored_entity_1 += ':red[' + char + ']'
                             if c in pos2:
                                 if char == " ":
@@ -65,7 +64,8 @@ def process_sampled_sentences(sampled_ids, data_entities, abstracts):
                                     colored_entity_2 += char
                                 else:
                                     color_flag_2 = 1
-                                    # sentence_string_to_present += ':blue[' + char + ']'
+                                    # sentence_string_to_present += (
+                                    #     ':blue[' + char + ']')
                                     # colored_entity_2 += ':blue[' + char + ']'
                             if color_flag_1 == 1 and color_flag_2 == 1:
                                 sentence_string_to_present += ":green[" + char + "]"

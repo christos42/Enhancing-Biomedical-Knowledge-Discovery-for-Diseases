@@ -13,7 +13,7 @@ from utils.training_utils import (
 
 class LaMReDA(torch.nn.Module):
     def __init__(self, args, device):
-        super(LaMReDA, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -261,7 +261,8 @@ class LaMReDA(torch.nn.Module):
         if self.args.do_train:
             rel_representations_tensor = self.dropout(rel_representations_tensor)
 
-        # BatchNorm needs more than one example only while training; in evaluation it uses the running statistics
+        # BatchNorm needs more than one example only while training; in evaluation it
+        # uses the running statistics
         if rel_representations_tensor.shape[0] != 1 or not self.training:
             y = self.BN(rel_representations_tensor)
             y = self.classification_layer(y)
@@ -273,7 +274,7 @@ class LaMReDA(torch.nn.Module):
 
 class LaMReDM(torch.nn.Module):
     def __init__(self, args, device):
-        super(LaMReDM, self).__init__()
+        super().__init__()
 
         self.args = args
         self.device = device
@@ -512,7 +513,8 @@ class LaMReDM(torch.nn.Module):
         if self.args.do_train:
             rel_representations_tensor = self.dropout(rel_representations_tensor)
 
-        # BatchNorm needs more than one example only while training; in evaluation it uses the running statistics
+        # BatchNorm needs more than one example only while training; in evaluation it
+        # uses the running statistics
         if rel_representations_tensor.shape[0] != 1 or not self.training:
             y = self.BN(rel_representations_tensor)
             y = self.classification_layer(y)

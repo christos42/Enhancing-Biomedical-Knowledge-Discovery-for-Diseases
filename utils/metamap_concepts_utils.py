@@ -58,7 +58,6 @@ def detect_overlaps(positions, d_):
                 p1_start = int(p1.split("/")[0]) - 1
                 p1_stop = p1_start + int(p1.split("/")[1])
                 p2_start = int(p2.split("/")[0]) - 1
-                p2_stop = p2_start + int(p2.split("/")[1])
                 if (p1_start <= p2_start) and (p2_start <= p1_stop):
                     cui1 = d_[p1]["cui"]
                     cui2 = d_[p2]["cui"]
@@ -101,11 +100,11 @@ def resolve_overlaps(positions, d_, overlaps):
                 else:
                     keys_to_remove.append(p1)
         except Exception:
-            if type(score1) == list:
+            if type(score1) is list:
                 s1 = score1[0]
             else:
                 s1 = score1
-            if type(score2) == list:
+            if type(score2) is list:
                 s2 = score2[0]
             else:
                 s2 = score2
@@ -139,7 +138,6 @@ def resolve_overlaps_with_expansion(positions, d_):
                 p1_start = int(p1.split("/")[0]) - 1
                 p1_stop = p1_start + int(p1.split("/")[1])
                 p2_start = int(p2.split("/")[0]) - 1
-                p2_stop = p2_start + int(p2.split("/")[1])
                 if (p1_start <= p2_start) and (p2_start <= p1_stop):
                     ent1 = d_[p1]
                     ent2 = d_[p2]
@@ -155,11 +153,14 @@ def resolve_overlaps_with_expansion(positions, d_):
 
 def check_expansion(position, sentence):
     p_start, p_stop = get_chunk(position)
-    # Index of the last character of the expanded entity (the end of the sentence if no boundary follows)
+    # Index of the last character of the expanded entity (the end of the sentence if no
+    # boundary follows)
     new_p_stop = len(sentence) - 1
     for index in range(p_stop, len(sentence)):
-        # if (sentence[index] in [' ', '(', ')', '<', '>']) or (sentence[index] == '.' and index == len(sentence) - 1):
-        # if (sentence[index] in [' ', ',']) or (sentence[index] == '.' and index == len(sentence) - 1):
+        # if (sentence[index] in [' ', '(', ')', '<', '>']) or (
+        #         sentence[index] == '.' and index == len(sentence) - 1):
+        # if (sentence[index] in [' ', ',']) or (
+        #         sentence[index] == '.' and index == len(sentence) - 1):
         if (sentence[index] in [" "]) or (
             sentence[index] == "." and index == len(sentence) - 1
         ):

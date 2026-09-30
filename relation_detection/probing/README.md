@@ -24,10 +24,10 @@ Install them with ```pip install -r ../requirements.txt```.
    - do_eval (store_value): boolean value to define if the evaluation session is executed.
    - model_id (int): the model id for the model selection, precisely:
      - 1: for the LMREA model (aggregation: addition)
-     - 2: for the LMREA_proj model (aggregation: addition) with linear projection layer before the classification layer
+     - 2: for the LMREAProj model (aggregation: addition) with linear projection layer before the classification layer
      - 3: for the LMREM model (aggregation: multiplication)
-     - 4: for the LMREM_proj model (aggregation: multiplication) with linear projection layer before the classification layer
-     - 5: for the LMRE_attention model (attention scores)
+     - 4: for the LMREMProj model (aggregation: multiplication) with linear projection layer before the classification layer
+     - 5: for the LMREAttention model (attention scores)
    - epoch (int): the number of training epochs
    - batch_size (int): the batch size for the training session
    - eval_batch_size (int): the batch size for the evaluation session
