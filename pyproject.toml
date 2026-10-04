@@ -2,7 +2,7 @@
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py311"
 # The directories whose scripts import each other as top-level modules
 src = [".", "annotation", "embedding_learning", "relation_detection", "relation_detection/probing"]
 # Copies of scispacy's files, kept identical to upstream
@@ -34,5 +34,6 @@ convention = "google"
 #   cd relation_detection/probing && MYPYPATH=../.. mypy *.py
 #   cd embedding_learning && MYPYPATH=.. mypy *.py
 [tool.mypy]
+python_version = "3.11"
 disallow_untyped_defs = true
 ignore_missing_imports = true

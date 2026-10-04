@@ -4,9 +4,10 @@
 ## Setup
 ### Requirements
 Install them with ```pip install -r ../requirements.txt```.
- - Python 3.8+
+ - Python 3.8-3.11 (tested with 3.8 and 3.11; pytorch 2.0.1 does not support Python 3.12 or newer)
  - pytorch (tested with version 2.0.1)
  - scikit-learn (tested with version 1.2.2)
+ - scipy (tested with version 1.10.1)
  - tqdm (tested with version 4.65.0)
  - transformers (tested with version 4.29.2)
  - numpy (tested with version 1.23.5)
