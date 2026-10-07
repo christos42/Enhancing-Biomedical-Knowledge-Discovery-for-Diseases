@@ -3,9 +3,11 @@
 
 ## Setup
 ### Requirements
- - Python 3.5+
+Install them with ```pip install -r ../requirements.txt```.
+ - Python 3.8-3.11 (tested with 3.8 and 3.11; pytorch 2.0.1 does not support Python 3.12 or newer)
  - pytorch (tested with version 2.0.1)
  - scikit-learn (tested with version 1.2.2)
+ - scipy (tested with version 1.10.1)
  - tqdm (tested with version 4.65.0)
  - transformers (tested with version 4.29.2)
  - numpy (tested with version 1.23.5)
@@ -13,26 +15,29 @@
 ---
 
 ### Execution steps
- - Run ```main.py --dataset_path --do_train --do_eval --model_id --epoch --batch_size --eval_batch_size --embed_mode 
+ - Run ```main.py --dataset_path [--dataset_path_eval] --do_train --do_eval [--do_cross_disease_training] --model_id --epoch --batch_size --eval_batch_size --embed_mode 
    --exp_setting --eval_metric --lr --weight_decay --seed --dropout --do_gradient_clipping --clip --steps --output_dir
    --output_file --sentence_wise_splits --fold --aggregation --encoding_layer --attention_head``` 
    to train and evaluate the models. [NOTE 1]
    Arguments:
    - dataset_path (string): the path of the dataset
+   - dataset_path_eval (string): the path of the evaluation dataset in case that the training and evaluation 
+     datasets are different files. The argument is used when cross-disease training and evaluation is applied.
    - do_train (store_value): boolean value to define if the training session is executed.
    - do_eval (store_value): boolean value to define if the evaluation session is executed.
+   - do_cross_disease_training (store_value): boolean value to define if cross-disease mode is applied.
    - model_id (int): the model id for the model selection, precisely:
      - 1: for the LMREA model (aggregation: addition)
-     - 2: for the LMREA_proj model (aggregation: addition) with linear projection layer before the classification layer
+     - 2: for the LMREAProj model (aggregation: addition) with linear projection layer before the classification layer
      - 3: for the LMREM model (aggregation: multiplication)
-     - 4: for the LMREM_proj model (aggregation: multiplication) with linear projection layer before the classification layer
-     - 5: for the LMRE_attention model (attention scores)
+     - 4: for the LMREMProj model (aggregation: multiplication) with linear projection layer before the classification layer
+     - 5: for the LMREAttention model (attention scores)
    - epoch (int): the number of training epochs
    - batch_size (int): the batch size for the training session
    - eval_batch_size (int): the batch size for the evaluation session
    - embed_mode (string): the backbone Language Model, "PubMedBERT_base" and "PubMedBERT_large" are supported.
    - exp_setting (string): the experimental setting for the task (correlation detection): binary or multi_class
-   - eval_metric (string): micro or macro evaluation (f1-score)
+   - eval_metric (string): micro, macro or weighted evaluation (f1-score) for the multi_class setting
    - lr (float): the learning rate
    - weight_decay (float): weight decaying rate
    - seed (int): random seed initialization 

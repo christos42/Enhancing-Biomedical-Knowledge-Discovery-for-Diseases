@@ -1,0 +1,39 @@
+# Code style settings. Format with `ruff format .` and lint with `ruff check .`.
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+# The directories whose scripts import each other as top-level modules
+src = [".", "annotation", "embedding_learning", "relation_detection", "relation_detection/probing"]
+# Copies of scispacy's files, kept identical to upstream
+extend-exclude = ["UMLS_update_SciSpacy"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle (PEP 8)
+    "F",       # pyflakes
+    "I",       # import order (PEP 8)
+    "N",       # naming (PEP 8)
+    "UP",      # modern syntax for the target Python version
+    "ANN",     # type annotations (PEP 484)
+    "D",       # docstrings (PEP 257)
+]
+ignore = [
+    "ANN401",  # the JSON data structures are dynamic, so typing.Any is intended
+    "D105",    # magic methods (__len__, __getitem__) are described by their class
+    "D107",    # constructor arguments are documented in the class docstring
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# Type check each part on its own, since the experiments reuse module names (main.py, ...):
+#   mypy --explicit-package-bases [0-9]*.py utils
+#   cd annotation && MYPYPATH=../utils mypy *.py
+#   cd relation_detection && MYPYPATH=.. mypy *.py
+#   cd relation_detection/probing && MYPYPATH=../.. mypy *.py
+#   cd embedding_learning && MYPYPATH=.. mypy *.py
+[tool.mypy]
+python_version = "3.11"
+disallow_untyped_defs = true
+ignore_missing_imports = true

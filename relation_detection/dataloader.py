@@ -1,17 +1,31 @@
-import sys
-from transformers import AutoTokenizer, AutoModelForMaskedLM
-from torch.utils.data import Dataset, DataLoader
-import random
+"""Datasets and data loaders of the relation detection experiments."""
 
-#sys.path.append('../utils/')
-sys.path.append('../')
+from __future__ import annotations
+
+import argparse
+import os
+import random
+import sys
+from collections.abc import Iterable
+from typing import Any
+
+from torch.utils.data import DataLoader, Dataset
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from utils.training_utils import CV, load_tokenizer_with_markers
 from utils.utils import read_json
 
-class collater_1():
-    def __init__(self):
+
+class Collater:
+    """Collate a batch into lists of words, entity ranges and relation labels."""
+
+    def __init__(self) -> None:
         pass
 
-    def __call__(self, data):
+    def __call__(
+        self, data: list[tuple[list[str], list[list[int]], int]]
+    ) -> list[list[Any]]:
+        """Return the words, entity ranges and labels of a batch as separate lists."""
         words = [item[0] for item in data]
         entities_ranges = [item[1] for item in data]
         relations = [item[2] for item in data]
@@ -20,75 +34,71 @@ class collater_1():
 
 
 class DataProcess(Dataset):
-    def __init__(self, data, embed_mode, exp_setting, use_distantly_supervised_data=False):
+    """Relation examples, with the entity ranges mapped to sub-word positions.
+
+    Args:
+        data: The (tokens with entity markers, entity ranges, relation) examples.
+        embed_mode: The backbone (a key of utils.training_utils.BACKBONES), whose
+            tokenizer maps the words to sub-words.
+        exp_setting: ``binary`` or ``multi_class``.
+        use_distantly_supervised_data: Whether the relations are the distantly
+            supervised labels (``Relation`` or ``No Relation``).
+    """
+
+    def __init__(
+        self,
+        data: list[tuple[list[str], list[list[int]], str]],
+        embed_mode: str,
+        exp_setting: str,
+        use_distantly_supervised_data: bool = False,
+    ) -> None:
         self.data = data
         self.embed_mode = embed_mode
-        if embed_mode == 'BiomedBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
-            # Add the special tokens [ent] & [/ent] in the vocabulary
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-        elif embed_mode == 'BiomedBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-large-uncased-abstract")
-            # Add the special tokens [ent] & [/ent] in the vocabulary
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-        elif embed_mode == 'BioLinkBERT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-base")
-            # Add the special tokens [ent] & [/ent] in the vocabulary
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-        elif embed_mode == 'BioLinkBERT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("michiyasunaga/BioLinkBERT-large")
-            # Add the special tokens [ent] & [/ent] in the vocabulary
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-        elif embed_mode == 'BioGPT_base':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/biogpt")
-            # Add the special tokens [ent] & [/ent] in the vocabulary
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
-        elif embed_mode == 'BioGPT_large':
-            self.tokenizer = AutoTokenizer.from_pretrained("microsoft/BioGPT-Large")
-            # Add the special tokens [ent] & [/ent] in the vocabulary
-            self.tokenizer.add_tokens(['[ent]'])
-            self.tokenizer.add_tokens(['[/ent]'])
+        # Same checkpoint as the model, so that the sub-word offsets match its
+        # tokenization
+        self.tokenizer = load_tokenizer_with_markers(embed_mode)
 
-        if exp_setting == 'binary':
+        if exp_setting == "binary":
             if use_distantly_supervised_data:
-                self.mapping = {'No Relation': 0,
-                                'Relation': 1}
+                self.mapping = {"No Relation": 0, "Relation": 1}
             else:
-                self.mapping = {'No Relation': 0,
-                                'Positive Relation': 1,
-                                'Complex Relation': 1,
-                                'Negative Relation': 1}
-        elif exp_setting == 'multi_class':
-            self.mapping = {'No Relation': 0,
-                            'Positive Relation': 1,
-                            'Complex Relation': 2,
-                            'Negative Relation': 3}
+                self.mapping = {
+                    "No Relation": 0,
+                    "Positive Relation": 1,
+                    "Complex Relation": 1,
+                    "Negative Relation": 1,
+                }
+        elif exp_setting == "multi_class":
+            self.mapping = {
+                "No Relation": 0,
+                "Positive Relation": 1,
+                "Complex Relation": 2,
+                "Negative Relation": 3,
+            }
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[list[str], list[list[int]], int]:
         words = self.data[idx][0]
         entities_range = self.data[idx][1]
         relation = self.mapping[self.data[idx][2]]
 
-        #sent_str = ' '.join(words)
-        #bert_words = self.tokenizer.tokenize(sent_str)
+        # sent_str = ' '.join(words)
+        # bert_words = self.tokenizer.tokenize(sent_str)
         # bert_len = original sentence + [CLS] and [SEP]
-        #bert_len = len(bert_words) + 2
+        # bert_len = len(bert_words) + 2
 
         word_to_bep = self.map_origin_word_to_bert(words)
         new_entities_range = self.ner_label_transform(entities_range, word_to_bep)
 
         return (words, new_entities_range, relation)
 
+    def map_origin_word_to_bert(self, words: list[str]) -> dict[int, list[int]]:
+        """Return the first and last sub-word index of each word.
 
-    def map_origin_word_to_bert(self, words):
+        The indices exclude the special tokens that the tokenizer adds.
+        """
         bep_dict = {}
         current_idx = 0
         for word_idx, word in enumerate(words):
@@ -98,7 +108,14 @@ class DataProcess(Dataset):
             current_idx = current_idx + word_len
         return bep_dict
 
-    def ner_label_transform(self, entities_range, word_to_bert):
+    def ner_label_transform(
+        self, entities_range: list[list[int]], word_to_bert: dict[int, list[int]]
+    ) -> list[list[int]]:
+        """Map word-level entity ranges to positions in the model input.
+
+        The ranges point at the ``[ent]`` and ``[/ent]`` markers, which are single
+        sub-words; 1 is added for the leading special token.
+        """
         new_entities_range = []
         for r in entities_range:
             # +1 for [CLS]
@@ -109,87 +126,46 @@ class DataProcess(Dataset):
         return new_entities_range
 
 
-def data_preprocess(keys, data):
+def data_preprocess(
+    keys: Iterable[str], data: dict[str, Any]
+) -> list[tuple[list[str], list[list[int]], str]]:
+    """Return the (tokens with markers, entity ranges, relation) of the records."""
     processed = []
     for k in keys:
         dic = data[k]
-        text = dic['updated_tokens']
-        entities = dic['updated_entities']
-        relation = dic['relation']
+        text = dic["updated_tokens"]
+        entities = dic["updated_entities"]
+        relation = dic["relation"]
 
         processed += [(text, entities, relation)]
     return processed
 
 
-def data_preprocess_distant_data(keys, data, exp_setting):
+def data_preprocess_distant_data(
+    keys: Iterable[str], data: dict[str, Any], exp_setting: str
+) -> list[tuple[list[str], list[list[int]], str]]:
+    """Return the examples of the distantly supervised records.
+
+    The relation of each record is its label for ``exp_setting``.
+    """
     processed = []
     for k in keys:
         dic = data[k]
-        text = dic['updated_tokens']
-        entities = dic['updated_entities']
-        relation = dic['relation'][exp_setting]
+        text = dic["updated_tokens"]
+        entities = dic["updated_entities"]
+        relation = dic["relation"][exp_setting]
 
         processed += [(text, entities, relation)]
     return processed
 
 
-class CV():
-    def __init__(self, keys, k):
-        self.keys = keys
-        self.k = k
+def dataloader(args: argparse.Namespace) -> tuple[DataLoader, ...]:
+    """Build the training, test and development data loaders.
 
-    def get_cv_splits(self, fold):
-        splits = []
-        step = len(self.keys) // self.k
-        for i in range(0, self.k * step, step):
-            splits.append(self.keys[i:i + step])
-        # Add the remaining keys in the last fold
-        splits[-1] += self.keys[self.k * step:]
-        # k-fold CV
-        train_keys = []
-        test_keys = []
-        for i, s in enumerate(splits):
-            if i == fold:
-                test_keys += s
-            else:
-                train_keys += s
-        return train_keys, test_keys
-
-    def get_unique_sentences(self):
-        sentences = []
-        for k in self.keys:
-            if '_'.join(k.split('_')[:2]) not in sentences:
-                sentences.append('_'.join(k.split('_')[:2]))
-        return sentences
-
-    def get_cv_splits_sentence_wise(self, fold):
-        sentences = self.get_unique_sentences()
-        splits = []
-        step = len(sentences) // self.k
-        for i in range(0, self.k * step, step):
-            splits.append(sentences[i:i + step])
-        # Add the remaining sentences in the last fold
-        splits[-1] += sentences[self.k * step:]
-        splits_keys = []
-        for i, s in enumerate(splits):
-            temp_s = []
-            for sent in s:
-                for k in self.keys:
-                    if '_'.join(k.split('_')[:2]) == sent:
-                        temp_s.append(k)
-            splits_keys.append(temp_s)
-        # 5 fold CV
-        train_keys = []
-        test_keys = []
-        for i, s in enumerate(splits_keys):
-            if i == fold:
-                test_keys += s
-            else:
-                train_keys += s
-        return train_keys, test_keys
-
-
-def dataloader(args):
+    There is no development loader for end-to-end training. The splits depend on the
+    setup: end-to-end training, weak supervision, cross-disease training,
+    cross-validation or the original split.
+    """
     if args.do_end_to_end_training:
         data = read_json(args.dataset_path)
         keys = list(data.keys())
@@ -209,7 +185,9 @@ def dataloader(args):
         data_test = read_json(args.dataset_path_test)
         test_keys = list(data_test.keys())
         # Preprocess the data before sending them in the Dataset class
-        train_data = data_preprocess_distant_data(train_keys, data_train, args.exp_setting)
+        train_data = data_preprocess_distant_data(
+            train_keys, data_train, args.exp_setting
+        )
         dev_data = data_preprocess(dev_keys, data_dev)
         test_data = data_preprocess(test_keys, data_test)
     elif args.do_cross_disease_training:
@@ -261,33 +239,62 @@ def dataloader(args):
             test_data = data_preprocess(dataset_test.keys(), dataset_test)
             dev_data = data_preprocess(dataset_dev.keys(), dataset_dev)
 
-
     if args.do_end_to_end_training:
-        train_dataset = DataProcess(train_data, args.embed_mode,  args.exp_setting)
+        train_dataset = DataProcess(train_data, args.embed_mode, args.exp_setting)
         test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
     elif args.use_distantly_supervised_data:
-        train_dataset = DataProcess(train_data, args.embed_mode, args.exp_setting, args.use_distantly_supervised_data)
+        train_dataset = DataProcess(
+            train_data,
+            args.embed_mode,
+            args.exp_setting,
+            args.use_distantly_supervised_data,
+        )
         test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
         dev_dataset = DataProcess(dev_data, args.embed_mode, args.exp_setting)
     else:
-        train_dataset = DataProcess(train_data, args.embed_mode,  args.exp_setting)
-        test_dataset = DataProcess(test_data, args.embed_mode,  args.exp_setting)
-        dev_dataset = DataProcess(dev_data, args.embed_mode,  args.exp_setting)
+        train_dataset = DataProcess(train_data, args.embed_mode, args.exp_setting)
+        test_dataset = DataProcess(test_data, args.embed_mode, args.exp_setting)
+        dev_dataset = DataProcess(dev_data, args.embed_mode, args.exp_setting)
 
-    collate_fn = collater_1()
+    collate_fn = Collater()
 
     if args.do_end_to_end_training:
-        train_batch = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True,
-                                 collate_fn=collate_fn)
-        test_batch = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                                collate_fn=collate_fn)
+        train_batch = DataLoader(
+            dataset=train_dataset,
+            batch_size=args.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
+        test_batch = DataLoader(
+            dataset=test_dataset,
+            batch_size=args.eval_batch_size,
+            shuffle=False,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
     else:
-        train_batch = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True,
-                                 collate_fn=collate_fn)
-        test_batch = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                                collate_fn=collate_fn)
-        dev_batch = DataLoader(dataset=dev_dataset, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True,
-                               collate_fn=collate_fn)
+        train_batch = DataLoader(
+            dataset=train_dataset,
+            batch_size=args.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
+        test_batch = DataLoader(
+            dataset=test_dataset,
+            batch_size=args.eval_batch_size,
+            shuffle=False,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
+        dev_batch = DataLoader(
+            dataset=dev_dataset,
+            batch_size=args.eval_batch_size,
+            shuffle=False,
+            pin_memory=True,
+            collate_fn=collate_fn,
+        )
 
     if args.do_end_to_end_training:
         return train_batch, test_batch

@@ -15,8 +15,8 @@ model_ids=(
   )
 epoch=50
 batch_size=16
-embed_mode='PubMedBERT_base'
-#embed_mode='PubMedBERT_large'
+embed_mode='BiomedBERT_base'
+#embed_mode='BiomedBERT_large'
 exp_setting='binary'
 #exp_setting='multi_class'
 eval_metrics=(

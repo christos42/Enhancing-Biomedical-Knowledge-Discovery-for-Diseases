@@ -1,16 +1,32 @@
+"""Step 1: search PubMed for a disease and save the PMIDs of the matching articles.
+
+The PMIDs are saved to ``<output_path>/<today's date>/<query>.json``. Queries with more
+than 9,999 results are searched one monthly date window at a time.
+"""
+
 import argparse
-from utils.pubmed import PubMed
 from datetime import date
-from utils.utils import save_json, create_new_folder
 
+from utils.pubmed import PubMed
+from utils.utils import create_new_folder, save_json
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--query", default="", type=str,
-                        required=True, help="the query term for the search, e.g. dementia")
-    parser.add_argument("--output_path", default="output/pmid/", type=str,
-                        required=False, help="the output path")
+    parser.add_argument(
+        "--query",
+        default="",
+        type=str,
+        required=True,
+        help="the query term for the search, e.g. dementia",
+    )
+    parser.add_argument(
+        "--output_path",
+        default="output/pmid/",
+        type=str,
+        required=False,
+        help="the output path",
+    )
 
     args = parser.parse_args()
 
@@ -21,19 +37,18 @@ if __name__ == '__main__':
     # Create new folder if needed
     create_new_folder(args.output_path + current_date)
 
-    p = PubMed(args.query.split(','))
-    print('Query: {}'.format(args.query))
+    p = PubMed(args.query.split(","))
+    print(f"Query: {args.query}")
     count = p.total_number_of_docs()
-    file_name = "_".join(args.query.split(',')) + '.json'
-    file_name = file_name.replace(' ', '')
-
+    file_name = "_".join(args.query.split(",")) + ".json"
+    file_name = file_name.replace(" ", "")
 
     if int(count) <= 9999:
-        s = p.search('', '')
-        save_json(s['IdList'], file_name, args.output_path + current_date + '/')
-        print('Number of PMIDs: {}'.format(len(s['IdList'])))
+        s = p.search("", "")
+        save_json(s["IdList"], file_name, args.output_path + current_date + "/")
+        print("Number of PMIDs: {}".format(len(s["IdList"])))
     else:
         ids, _ = p.retrieve_all_ids()
-        save_json(ids, new_file_name, args.output_path + current_date + '/')
-        print('Number of PMIDs: {}'.format(len(ids)))
-    print('#############################')
+        save_json(ids, file_name, args.output_path + current_date + "/")
+        print(f"Number of PMIDs: {len(ids)}")
+    print("#############################")

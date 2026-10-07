@@ -1,0 +1,24 @@
+# Knowledge-graph pipeline (steps 1-9) for Python 3.11; the versions are the ones listed as tested in README.md
+# 1.87+ has no wheels for Intel Macs
+biopython==1.86
+nltk==3.7
+scispacy==0.5.1
+# scikit-learn 1.5+ cannot use the TF-IDF vectorizers of linkers created with older versions (e.g. 0.23.2)
+scikit-learn==1.4.2
+# Creating the linkers (UMLS_update_SciSpacy/tfidf_creation.ipynb saves float16 vectors) needs scipy < 1.11
+scipy==1.10.1
+spacy==3.4.4
+# spaCy 3.4 imports pkg_resources, which setuptools 81+ no longer provides
+setuptools<81
+pandas==1.5.3
+numpy==1.23.5
+# Nearest-neighbour index of the linkers (2.1.2 is the first release with Python 3.11 wheels)
+nmslib==2.1.2
+matplotlib
+# SciSpacy NER models used in step 5
+en_ner_craft_md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_craft_md-0.5.1.tar.gz
+en_ner_bc5cdr_md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_bc5cdr_md-0.5.1.tar.gz
+en_ner_jnlpba_md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_jnlpba_md-0.5.1.tar.gz
+en_ner_bionlp13cg_md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_ner_bionlp13cg_md-0.5.1.tar.gz
+# MetaMap Lite pipeline
+pymetamap @ git+https://github.com/AnthonyMRios/pymetamap.git

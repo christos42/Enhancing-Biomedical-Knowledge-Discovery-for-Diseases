@@ -5,9 +5,11 @@ This subdirectory consist of the supervised approaches of the study, presenting 
 
 ## Setup
 ### Requirements
- - Python 3.5+
+Install them with ```pip install -r requirements.txt```.
+ - Python 3.8-3.11 (tested with 3.8 and 3.11; pytorch 2.0.1 does not support Python 3.12 or newer)
  - pytorch (tested with version 2.0.1)
  - scikit-learn (tested with version 1.2.2)
+ - scipy (tested with version 1.10.1)
  - tqdm (tested with version 4.65.0)
  - transformers (tested with version 4.29.2)
  - numpy (tested with version 1.23.5)
@@ -17,7 +19,7 @@ This subdirectory consist of the supervised approaches of the study, presenting 
 ### Execution steps
  - Run ```main.py [--dataset_path] [--dataset_path_eval] [--dataset_path_train] [--dataset_path_dev] [--dataset_path_test] 
    --do_train --do_eval --do_cross_disease_training --model_id --epoch --batch_size --eval_batch_size --embed_mode 
-   --exp_setting --eval_metric --lr --weight_decay --seed --dropout --do_gradient_clipping --clip --steps --margin 
+   --lr --weight_decay --seed --dropout --do_gradient_clipping --clip --steps --margin 
    --threshold --output_dir --output_file --sentence_wise_splits --do_cross_validation --fold --aggregation``` 
    to train and evaluate the models. [NOTE 1]
    Arguments:
@@ -26,19 +28,18 @@ This subdirectory consist of the supervised approaches of the study, presenting 
      datasets are different files. The argument is used when cross-disease training and evaluation is applied.
    - dataset_path_train (string): the path of the training dataset (original split setup)
    - dataset_path_dev (string): the path of the development dataset (original split setup)
-   - dataset_path_train (string): the path of the test dataset (original split setup)
+   - dataset_path_test (string): the path of the test dataset (original split setup)
    - do_train (store_value): boolean value to define if the training session is executed.
    - do_eval (store_value): boolean value to define if the evaluation session is executed.
    - do_cross_disease_training (store_value): boolean value to define if cross-disease mode is applied.
    - model_id (int): the model id for the model selection, precisely:
      - 1: for the LaMEL model (E<sub>A</sub>, E<sub>B</sub>, E<sub>C</sub>, E<sub>D</sub>)
-     - 2: for the LaMEL_inter model (E<sub>E</sub>, E<sub>F</sub>, E<sub>G</sub>, E<sub>H</sub>)
+     - 2: for the LaMELInter model (E<sub>E</sub>, E<sub>F</sub>, E<sub>G</sub>, E<sub>H</sub>)
    - epoch (int): the number of training epochs
    - batch_size (int): the batch size for the training session
    - eval_batch_size (int): the batch size for the evaluation session
-   - embed_mode (string): the backbone Language Model, "PubMedBERT_base" and "PubMedBERT_large" are supported.
-   - exp_setting (string): the experimental setting for the task (correlation detection): binary or multi_class
-   - eval_metric (string): micro or macro evaluation (f1-score)
+   - embed_mode (string): the backbone Language Model, "BiomedBERT_base", "BiomedBERT_large", "BioLinkBERT_base", 
+     "BioLinkBERT_large", "BioGPT_base" and "BioGPT_large" are supported.
    - lr (float): the learning rate
    - weight_decay (float): weight decaying rate
    - seed (int): random seed initialization 

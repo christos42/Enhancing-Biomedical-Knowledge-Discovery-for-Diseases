@@ -1,0 +1,9 @@
+# Sentence sampling, annotation app and dataset creation for Python 3.11; the versions are the ones listed as tested
+# in README.md
+numpy==1.23.5
+streamlit==1.20.0
+scispacy==0.5.1
+# spaCy 3.4 imports pkg_resources, which setuptools 81+ no longer provides
+setuptools<81
+# Tokenizer used by 4_dataset_processing.py
+en_core_sci_scibert @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.1/en_core_sci_scibert-0.5.1.tar.gz

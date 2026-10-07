@@ -10,14 +10,19 @@ Theodoropoulos, C., Catalin Coman, A., Henderson, J., and Moens, M.-F. Enhancing
 
 ## Setup
 ### Requirements
- - Python 3.5+
- - BioPython (tested with version 1.78)
+Install them with ```pip install -r requirements.txt```. The experiments in the subdirectories have their own requirements files
+and pin a different scikit-learn version, so use a separate environment for them.
+ - Python 3.11 (spacy 3.4 and scispacy 0.5.1 do not support Python 3.12 or newer)
+ - BioPython (tested with version 1.86)
  - nltk (tested with version 3.7) 
  - scispacy (tested with version 0.5.1)
- - sklearn (tested with version 0.23.2)
+ - sklearn (tested with version 1.4.2; version 1.5 or newer cannot use the TF-IDF vectorizers of linkers created with
+   older versions, e.g. 0.23.2)
+ - scipy (tested with version 1.10.1; creating the linkers needs a version older than 1.11)
  - spacy (tested with version 3.4.4)
- - pandas (tested with version 1.4.1)
+ - pandas (tested with version 1.5.3)
  - numpy (tested with version 1.23.5)
+ - nmslib (tested with version 2.1.2)
  - [pymetamap](https://github.com/AnthonyMRios/pymetamap)
 
 ### Execution steps
@@ -47,7 +52,7 @@ store the files under the folder ```UMLS_update_SciSpacy```.
 - Execute the ```knowledge_base_creation.ipynb``` notebook to extract the processed [knowledge bases](https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html) 
 (UMLS [2], GO [4], NCBI [5], SNOMEDCT_US [6], HPO [7], MESH [8], RXNORM [9], DRUGBANK [10], [GS](https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/GS/index.html)).
 - Execute the ```tfidf_creation.ipynb``` notebook to create the linkers.
-- Find the location of SciSpacy package (i.e. <i>miniconda3/envs/ml_42/lib/python3.8/site-packages/scispacy/</i>). Update the paths of the created linkers accordingly in the scripts ```linking_utils.py``` and ```candidate_generation.py```
+- Find the location of SciSpacy package (i.e. <i>miniconda3/envs/ml_42/lib/python3.11/site-packages/scispacy/</i>). Update the paths of the created linkers accordingly in the scripts ```linking_utils.py``` and ```candidate_generation.py```
 that are contained in SciSpacy library. We provide our updated version of the scripts for reference.
 - Run ```5_mention_extraction_scispacy.py --date [--linker] [--input_path] [--output_path]``` to extract the entities [NOTE 2] and link them to the defined knowledge base/vocabularies. Arguments:
   - date (string): the date of the PMID extraction in the following format: day_month_year
@@ -109,8 +114,8 @@ that are contained in SciSpacy library. We provide our updated version of the sc
   - [NOTE 3] : In the implementation, we hypothesize that all the supported linkers are used. If this is not the case comment-out
                lines of code accordingly in the ```6_entity_linking_merge.py --date [--input_path]``` script and adjust also the 
                ```merge_linkers_scispacy``` function.
-  - [NOTE 4] : When the next character of an entity is not one of the following: " ", <, >, (, ), . (in the end of the sentence), then
-               expand the entity as far as the aforementioned restriction holds. For example, if a medication with the name <i>drug</i>
+  - [NOTE 4] : When an entity is attached to other characters, it is expanded backwards up to the previous space and forwards
+               up to the next space (or up to the full stop that ends the sentence). For example, if a medication with the name <i>drug</i>
                is detected and it is <i>drug4.2%</i> in the context, then the <i>drug</i> entity is expanded to <i>drug4.2%</i>.
 
 Please cite our work when using this software.
